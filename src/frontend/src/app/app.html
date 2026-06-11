@@ -1,0 +1,17 @@
+<header class="app-header">
+  <h1>Ascensores Iruña</h1>
+  <p>Estado en tiempo real de los ascensores públicos de Pamplona</p>
+</header>
+
+<main class="app-main">
+  <app-elevator-list (reportClicked)="openReportDialog($event)" />
+</main>
+
+@if (showDialog()) {
+  <app-report-dialog
+    [elevatorId]="selectedElevatorId()"
+    [elevatorName]="selectedElevatorName()"
+    (reportSubmitted)="onReportSubmitted($event)"
+    (closed)="onDialogClosed()"
+  />
+}

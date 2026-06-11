@@ -1,0 +1,96 @@
+.elevator-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #ccc;
+  transition: box-shadow 0.2s;
+}
+
+.elevator-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.elevator-card.operativo {
+  border-left-color: #28a745;
+}
+
+.elevator-card.parcial {
+  border-left-color: #ffc107;
+}
+
+.elevator-card.averiado {
+  border-left-color: #dc3545;
+}
+
+.elevator-card.desconocido {
+  border-left-color: #6c757d;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.elevator-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.elevator-location {
+  margin: 0.125rem 0 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.card-details {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.status-label {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.time-ago {
+  color: #6c757d;
+}
+
+.report-count {
+  color: #6c757d;
+}
+
+.report-btn {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+  color: #495057;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.report-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}

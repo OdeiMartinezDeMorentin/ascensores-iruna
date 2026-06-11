@@ -1,0 +1,118 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.dialog h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  color: #1a1a2e;
+}
+
+.dialog-elevator-name {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.status-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.status-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-size: 1rem;
+}
+
+.status-option:hover {
+  background: #f8f9fa;
+}
+
+.status-option.operativo {
+  border-color: #28a745;
+}
+
+.status-option.operativo:hover {
+  background: #e8f5e9;
+}
+
+.status-option.parcial {
+  border-color: #ffc107;
+}
+
+.status-option.parcial:hover {
+  background: #fff8e1;
+}
+
+.status-option.averiado {
+  border-color: #dc3545;
+}
+
+.status-option.averiado:hover {
+  background: #ffebee;
+}
+
+.status-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.operativo .status-dot {
+  background: #28a745;
+}
+
+.parcial .status-dot {
+  background: #ffc107;
+}
+
+.averiado .status-dot {
+  background: #dc3545;
+}
+
+.status-text {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.cancel-btn {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #fff;
+  color: #6c757d;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #f1f3f5;
+}

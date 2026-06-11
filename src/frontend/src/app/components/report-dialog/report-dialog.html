@@ -1,0 +1,23 @@
+<div class="dialog-overlay" (click)="close()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <h2>Reportar estado</h2>
+    <p class="dialog-elevator-name">{{ elevatorName() }}</p>
+
+    <div class="status-options">
+      <button class="status-option operativo" (click)="selectStatus('Operativo')">
+        <span class="status-dot"></span>
+        <span class="status-text">Operativo</span>
+      </button>
+      <button class="status-option parcial" (click)="selectStatus('Parcial')">
+        <span class="status-dot"></span>
+        <span class="status-text">Parcialmente operativo</span>
+      </button>
+      <button class="status-option averiado" (click)="selectStatus('Averiado')">
+        <span class="status-dot"></span>
+        <span class="status-text">Averiado</span>
+      </button>
+    </div>
+
+    <button class="cancel-btn" (click)="close()">Cancelar</button>
+  </div>
+</div>

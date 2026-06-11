@@ -1,0 +1,17 @@
+@if (isLoading()) {
+  <div class="loading">Cargando ascensores...</div>
+}
+
+@if (hasError()) {
+  <div class="error">Error al cargar los ascensores. Inténtalo de nuevo.</div>
+}
+
+@if (!isLoading() && !hasError()) {
+  <div class="elevator-list">
+    @for (elevator of elevators(); track elevator.id) {
+      <app-elevator-card [elevator]="elevator" (reportClicked)="reportClicked.emit($event)" />
+    } @empty {
+      <p>No hay ascensores disponibles.</p>
+    }
+  </div>
+}

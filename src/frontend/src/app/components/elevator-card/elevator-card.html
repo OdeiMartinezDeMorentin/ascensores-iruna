@@ -1,0 +1,19 @@
+<div class="elevator-card" [class]="elevator().currentStatus.toLowerCase()">
+  <div class="card-header">
+    <span class="status-icon">{{ statusIcon() }}</span>
+    <div class="card-info">
+      <h3 class="elevator-name">{{ elevator().name }}</h3>
+      <p class="elevator-location">{{ elevator().location }}</p>
+    </div>
+  </div>
+  <div class="card-details">
+    <span class="status-label">{{ statusLabel() }}</span>
+    @if (timeAgo()) {
+      <span class="time-ago">Reportado {{ timeAgo() }}</span>
+    }
+    <span class="report-count">{{ elevator().totalReports }} reportes</span>
+  </div>
+  <button class="report-btn" (click)="reportClicked.emit(elevator().id)">
+    Reportar estado
+  </button>
+</div>
