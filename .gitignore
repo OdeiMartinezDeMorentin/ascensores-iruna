@@ -5,9 +5,10 @@ obj/
 *.suo
 *.cache
 *.log
+*.http
 
 # SQLite
-data/
+/data/
 *.db
 *.db-shm
 *.db-wal
@@ -30,3 +31,4 @@ Thumbs.db
 
 # Environment
 .env
+appsettings.Development.json
