@@ -32,3 +32,6 @@ Thumbs.db
 # Environment
 .env
 appsettings.Development.json
+
+# Project docs
+AGENTS.md
