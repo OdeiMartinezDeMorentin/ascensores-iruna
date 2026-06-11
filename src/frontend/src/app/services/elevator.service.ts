@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Elevator, CreateReportDto } from '../models/elevator.model';
+import { Elevator, CreateReportDto, UpdateReportDto, MyLatestReport } from '../models/elevator.model';
 
 @Injectable({ providedIn: 'root' })
 export class ElevatorService {
@@ -30,10 +30,59 @@ export class ElevatorService {
     });
   }
 
-  createReport(elevatorId: number, dto: CreateReportDto): void {
-    this.http.post<Elevator>(`${this.apiUrl}/${elevatorId}/reports`, dto).subscribe({
-      next: () => this.loadElevators(),
-      error: (err) => this.error.set(err.message)
+  createReport(elevatorId: number, dto: CreateReportDto): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.http.post(`${this.apiUrl}/${elevatorId}/reports`, dto, { observe: 'response', responseType: 'json' })
+        .subscribe({
+          next: () => {
+            this.loadElevators();
+            resolve(null);
+          },
+          error: (err) => {
+            if (err.status === 429) {
+              resolve(err.error?.message || 'Has alcanzado el límite de reportes.');
+            } else {
+              resolve(err.message);
+            }
+          }
+        });
+    });
+  }
+
+  updateReport(elevatorId: number, dto: UpdateReportDto): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.http.put(`${this.apiUrl}/${elevatorId}/reports/latest`, dto, { observe: 'response', responseType: 'json' })
+        .subscribe({
+          next: () => {
+            this.loadElevators();
+            resolve(null);
+          },
+          error: (err) => {
+            if (err.status === 429) {
+              resolve(err.error?.message || 'Has alcanzado el límite de reportes.');
+            } else {
+              resolve(err.message);
+            }
+          }
+        });
+    });
+  }
+
+  getMyLatestReport(elevatorId: number): Promise<MyLatestReport | null> {
+    return new Promise((resolve) => {
+      this.http.get<MyLatestReport>(`${this.apiUrl}/${elevatorId}/reports/my-latest`, { observe: 'response' })
+        .subscribe({
+          next: (response) => {
+            if (response.status === 204 || !response.body) {
+              resolve(null);
+            } else {
+              resolve(response.body);
+            }
+          },
+          error: () => {
+            resolve(null);
+          }
+        });
     });
   }
 }

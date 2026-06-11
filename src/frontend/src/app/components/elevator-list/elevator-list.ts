@@ -16,6 +16,7 @@ export class ElevatorList {
   readonly hasError = this.elevatorService.hasError;
 
   readonly reportClicked = output<number>();
+  readonly editClicked = output<number>();
 
   constructor() {
     this.elevatorService.loadElevators();

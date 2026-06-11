@@ -7,10 +7,22 @@ export interface Elevator {
   currentStatus: string;
   lastReportedAt: string | null;
   totalReports: number;
+  canReport: boolean;
 }
 
 export type ElevatorStatus = 'Operativo' | 'Parcial' | 'Averiado' | 'Desconocido';
 
 export interface CreateReportDto {
   status: string;
+}
+
+export interface UpdateReportDto {
+  status: string;
+}
+
+export interface MyLatestReport {
+  reportId: number;
+  status: string;
+  reportedAt: string;
+  canEdit: boolean;
 }

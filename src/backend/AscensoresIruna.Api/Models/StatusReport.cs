@@ -6,5 +6,6 @@ public class StatusReport
     public int ElevatorId { get; set; }
     public ElevatorStatus Status { get; set; }
     public DateTime ReportedAt { get; set; }
+    public string IpAddressHash { get; set; } = string.Empty;
     public Elevator Elevator { get; set; } = null!;
 }

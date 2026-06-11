@@ -17,6 +17,8 @@ export class ElevatorMap {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLElement>;
   private map: L.Map | null = null;
   private markers: L.Marker[] = [];
+  private pinnedMarker: L.Marker | null = null;
+  private hoverTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {
@@ -52,6 +54,13 @@ export class ElevatorMap {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(this.map);
+
+    this.map.on('click', () => {
+      if (this.pinnedMarker) {
+        this.pinnedMarker.closePopup();
+        this.pinnedMarker = null;
+      }
+    });
   }
 
   private updateMarkers(elevators: Elevator[]): void {
@@ -64,9 +73,73 @@ export class ElevatorMap {
       const icon = this.createIcon(elevator.currentStatus);
       const marker = L.marker([elevator.latitude, elevator.longitude], { icon })
         .addTo(this.map)
-        .bindPopup(this.createPopupContent(elevator));
+        .bindPopup(this.createPopupContent(elevator), { closeButton: true });
+
+      marker.on('mouseover', () => {
+        if (this.hoverTimeout) {
+          clearTimeout(this.hoverTimeout);
+          this.hoverTimeout = null;
+        }
+        if (this.pinnedMarker && this.pinnedMarker !== marker) {
+          this.pinnedMarker.closePopup();
+          this.pinnedMarker = null;
+        }
+        marker.openPopup();
+      });
+
+      marker.on('mouseout', () => {
+        if (this.pinnedMarker === marker) return;
+        this.scheduleClose(marker);
+      });
+
+      marker.on('click', () => {
+        if (this.hoverTimeout) {
+          clearTimeout(this.hoverTimeout);
+          this.hoverTimeout = null;
+        }
+        if (this.pinnedMarker === marker) {
+          this.pinnedMarker.closePopup();
+          this.pinnedMarker = null;
+        } else {
+          if (this.pinnedMarker) {
+            this.pinnedMarker.closePopup();
+          }
+          this.pinnedMarker = marker;
+          marker.openPopup();
+        }
+      });
+
+      marker.on('popupclose', () => {
+        if (this.pinnedMarker === marker) {
+          this.pinnedMarker = null;
+        }
+      });
+
+      marker.on('popupopen', () => {
+        const popupEl = marker.getPopup()?.getElement();
+        if (popupEl) {
+          popupEl.addEventListener('mouseenter', () => {
+            if (this.hoverTimeout) {
+              clearTimeout(this.hoverTimeout);
+              this.hoverTimeout = null;
+            }
+          });
+          popupEl.addEventListener('mouseleave', () => {
+            if (this.pinnedMarker === marker) return;
+            this.scheduleClose(marker);
+          });
+        }
+      });
+
       this.markers.push(marker);
     }
+  }
+
+  private scheduleClose(marker: L.Marker): void {
+    this.hoverTimeout = setTimeout(() => {
+      marker.closePopup();
+      this.hoverTimeout = null;
+    }, 200);
   }
 
   private createIcon(status: string): L.DivIcon {

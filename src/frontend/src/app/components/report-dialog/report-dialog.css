@@ -116,3 +116,13 @@
 .cancel-btn:hover {
   background: #f1f3f5;
 }
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #ef9a9a;
+}

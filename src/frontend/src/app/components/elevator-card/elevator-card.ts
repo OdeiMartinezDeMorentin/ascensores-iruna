@@ -10,13 +10,14 @@ import { Elevator } from '../../models/elevator.model';
 export class ElevatorCard {
   readonly elevator = input.required<Elevator>();
   readonly reportClicked = output<number>();
+  readonly editClicked = output<number>();
 
   readonly statusIcon = computed(() => {
     switch (this.elevator().currentStatus) {
-      case 'Operativo': return '🟢';
-      case 'Parcial': return '🟡';
-      case 'Averiado': return '🔴';
-      default: return '⚪';
+      case 'Operativo': return '\uD83D\uDFE2';
+      case 'Parcial': return '\uD83D\uDFE1';
+      case 'Averiado': return '\uD83D\uDD34';
+      default: return '\u26AA';
     }
   });
 

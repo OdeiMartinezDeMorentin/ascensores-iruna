@@ -17,6 +17,8 @@ export class App implements OnDestroy {
   readonly showDialog = signal(false);
   readonly selectedElevatorId = signal(0);
   readonly selectedElevatorName = signal('');
+  readonly isEditing = signal(false);
+  readonly errorMessage = signal<string | null>(null);
 
   private readonly handleReportEvent = (e: Event) => {
     const customEvent = e as CustomEvent<number>;
@@ -36,16 +38,42 @@ export class App implements OnDestroy {
     if (elevator) {
       this.selectedElevatorId.set(elevatorId);
       this.selectedElevatorName.set(elevator.name);
+      this.isEditing.set(false);
+      this.errorMessage.set(null);
       this.showDialog.set(true);
     }
   }
 
-  onReportSubmitted(event: { elevatorId: number; status: ElevatorStatus }): void {
-    this.elevatorService.createReport(event.elevatorId, { status: event.status });
-    this.showDialog.set(false);
+  openEditDialog(elevatorId: number): void {
+    const elevator = this.elevatorService.elevatorsList().find(e => e.id === elevatorId);
+    if (elevator) {
+      this.selectedElevatorId.set(elevatorId);
+      this.selectedElevatorName.set(elevator.name);
+      this.isEditing.set(true);
+      this.errorMessage.set(null);
+      this.showDialog.set(true);
+    }
+  }
+
+  async onReportSubmitted(event: { elevatorId: number; status: ElevatorStatus }): Promise<void> {
+    this.errorMessage.set(null);
+    let error: string | null;
+
+    if (this.isEditing()) {
+      error = await this.elevatorService.updateReport(event.elevatorId, { status: event.status });
+    } else {
+      error = await this.elevatorService.createReport(event.elevatorId, { status: event.status });
+    }
+
+    if (error) {
+      this.errorMessage.set(error);
+    } else {
+      this.showDialog.set(false);
+    }
   }
 
   onDialogClosed(): void {
     this.showDialog.set(false);
+    this.errorMessage.set(null);
   }
 }

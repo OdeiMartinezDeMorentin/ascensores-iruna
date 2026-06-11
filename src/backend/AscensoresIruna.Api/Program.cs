@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using AscensoresIruna.Api.Data;
+using AscensoresIruna.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Data Source=data/ascensores.db"));
+
+builder.Services.AddScoped<IpHashService>();
+builder.Services.AddScoped<ElevatorStatusService>();
+builder.Services.AddScoped<TrustScoreService>();
 
 builder.Services.AddCors(options =>
 {
@@ -38,7 +43,7 @@ if (!Directory.Exists(dataDir))
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
     SeedData.Initialize(scope.ServiceProvider);
 }
 

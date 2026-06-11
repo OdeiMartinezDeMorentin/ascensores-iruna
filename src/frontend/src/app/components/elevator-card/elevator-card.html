@@ -13,7 +13,13 @@
     }
     <span class="report-count">{{ elevator().totalReports }} reportes</span>
   </div>
-  <button class="report-btn" (click)="reportClicked.emit(elevator().id)">
-    Reportar estado
-  </button>
+  @if (elevator().canReport) {
+    <button class="report-btn" (click)="reportClicked.emit(elevator().id)">
+      Reportar estado
+    </button>
+  } @else {
+    <button class="edit-btn" (click)="editClicked.emit(elevator().id)">
+      Modificar reporte
+    </button>
+  }
 </div>

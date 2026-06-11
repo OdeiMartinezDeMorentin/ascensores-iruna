@@ -94,3 +94,20 @@
   background: #e9ecef;
   border-color: #adb5bd;
 }
+
+.edit-btn {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #856404;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.edit-btn:hover {
+  background: #ffe082;
+  border-color: #ffb300;
+}

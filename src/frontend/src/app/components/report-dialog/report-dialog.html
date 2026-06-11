@@ -1,7 +1,11 @@
 <div class="dialog-overlay" (click)="close()">
   <div class="dialog" (click)="$event.stopPropagation()">
-    <h2>Reportar estado</h2>
+    <h2>{{ isEditing() ? 'Modificar reporte' : 'Reportar estado' }}</h2>
     <p class="dialog-elevator-name">{{ elevatorName() }}</p>
+
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    }
 
     <div class="status-options">
       <button class="status-option operativo" (click)="selectStatus('Operativo')">

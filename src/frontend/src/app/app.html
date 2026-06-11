@@ -8,7 +8,7 @@
     <app-elevator-map (reportClicked)="openReportDialog($event)" />
   </div>
   <div class="list-panel">
-    <app-elevator-list (reportClicked)="openReportDialog($event)" />
+    <app-elevator-list (reportClicked)="openReportDialog($event)" (editClicked)="openEditDialog($event)" />
   </div>
 </main>
 
@@ -16,6 +16,8 @@
   <app-report-dialog
     [elevatorId]="selectedElevatorId()"
     [elevatorName]="selectedElevatorName()"
+    [isEditing]="isEditing()"
+    [errorMessage]="errorMessage()"
     (reportSubmitted)="onReportSubmitted($event)"
     (closed)="onDialogClosed()"
   />

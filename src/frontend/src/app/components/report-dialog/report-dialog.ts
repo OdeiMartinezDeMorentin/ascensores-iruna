@@ -10,6 +10,8 @@ import { ElevatorStatus } from '../../models/elevator.model';
 export class ReportDialog {
   readonly elevatorId = input.required<number>();
   readonly elevatorName = input.required<string>();
+  readonly isEditing = input<boolean>();
+  readonly errorMessage = input<string | null>();
   readonly reportSubmitted = output<{ elevatorId: number; status: ElevatorStatus }>();
   readonly closed = output<void>();
 

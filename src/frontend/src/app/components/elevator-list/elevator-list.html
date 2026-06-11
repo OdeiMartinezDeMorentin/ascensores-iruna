@@ -9,7 +9,7 @@
 @if (!isLoading() && !hasError()) {
   <div class="elevator-list">
     @for (elevator of elevators(); track elevator.id) {
-      <app-elevator-card [elevator]="elevator" (reportClicked)="reportClicked.emit($event)" />
+      <app-elevator-card [elevator]="elevator" (reportClicked)="reportClicked.emit($event)" (editClicked)="editClicked.emit($event)" />
     } @empty {
       <p>No hay ascensores disponibles.</p>
     }
