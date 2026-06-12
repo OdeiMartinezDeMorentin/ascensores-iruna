@@ -178,7 +178,6 @@
 
   .app-main {
     flex-direction: column;
-    height: auto;
   }
 
   .map-panel {
@@ -187,8 +186,8 @@
   }
 
   .list-panel {
-    flex: none;
-    min-height: 40vh;
+    flex: 1;
+    min-height: 0;
     border-left: none;
     border-top: 1px solid #dee2e6;
   }
