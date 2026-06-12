@@ -7,16 +7,18 @@ namespace AscensoresIruna.Api.Services;
 public class ElevatorStatusService
 {
     private readonly AppDbContext _context;
+    private readonly TimeProvider _timeProvider;
 
-    public ElevatorStatusService(AppDbContext context)
+    public ElevatorStatusService(AppDbContext context, TimeProvider? timeProvider = null)
     {
         _context = context;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<ElevatorStatusResult> GetCurrentStatusAsync(int elevatorId)
     {
         var spainTz = TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
-        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, spainTz);
+        var now = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, spainTz);
         var twoHoursAgo = now.AddHours(-2);
 
         var reports = await _context.StatusReports

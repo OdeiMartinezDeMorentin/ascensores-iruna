@@ -15,6 +15,7 @@ public class ElevatorsController : ControllerBase
     private readonly IpHashService _ipHashService;
     private readonly ElevatorStatusService _statusService;
     private readonly TrustScoreService _trustService;
+    private readonly TimeProvider _timeProvider;
 
     private static readonly TimeSpan RateLimitWindow = TimeSpan.FromMinutes(10);
     private const int MaxElevatorsPerWindow = 3;
@@ -23,12 +24,14 @@ public class ElevatorsController : ControllerBase
         AppDbContext context,
         IpHashService ipHashService,
         ElevatorStatusService statusService,
-        TrustScoreService trustService)
+        TrustScoreService trustService,
+        TimeProvider? timeProvider = null)
     {
         _context = context;
         _ipHashService = ipHashService;
         _statusService = statusService;
         _trustService = trustService;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     [HttpGet]
@@ -69,7 +72,7 @@ public class ElevatorsController : ControllerBase
         var status = Enum.Parse<ElevatorStatus>(dto.Status);
 
         var ipHash = GetClientIpHash();
-        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+        var now = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
         var windowStart = now.Subtract(RateLimitWindow);
 
         using var transaction = await _context.Database.BeginTransactionAsync(
@@ -136,7 +139,7 @@ public class ElevatorsController : ControllerBase
         var status = Enum.Parse<ElevatorStatus>(dto.Status);
 
         var ipHash = GetClientIpHash();
-        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+        var now = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
         var windowStart = now.Subtract(RateLimitWindow);
 
         var report = await _context.StatusReports
@@ -171,7 +174,7 @@ public class ElevatorsController : ControllerBase
             return NotFound();
 
         var ipHash = GetClientIpHash();
-        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+        var now = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
         var windowStart = now.Subtract(RateLimitWindow);
 
         var report = await _context.StatusReports
@@ -196,7 +199,7 @@ public class ElevatorsController : ControllerBase
             return NotFound();
 
         var ipHash = GetClientIpHash();
-        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+        var now = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
         var windowStart = now.Subtract(RateLimitWindow);
 
         var report = await _context.StatusReports
@@ -227,7 +230,7 @@ public class ElevatorsController : ControllerBase
     {
         var statusResult = await _statusService.GetCurrentStatusAsync(elevator.Id);
 
-        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+        var now = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
         var windowStart = now.Subtract(RateLimitWindow);
 
         var canReport = !await _context.StatusReports

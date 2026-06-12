@@ -19,6 +19,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Data Source=data/ascensores.db"));
 
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IpHashService>();
 builder.Services.AddScoped<ElevatorStatusService>();
 builder.Services.AddScoped<TrustScoreService>();

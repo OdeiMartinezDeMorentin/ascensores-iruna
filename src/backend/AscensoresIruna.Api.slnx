@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AscensoresIruna.Api/AscensoresIruna.Api.csproj" />
+  <Project Path="AscensoresIruna.Api.Tests/AscensoresIruna.Api.Tests.csproj" />
 </Solution>
