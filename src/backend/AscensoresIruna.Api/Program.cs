@@ -46,9 +46,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 builder.Services.Configure<Microsoft.AspNetCore.HostFiltering.HostFilteringOptions>(options =>
 {
-    options.AllowedHosts = builder.Environment.IsDevelopment()
-        ? new[] { "*" }
-        : new[] { "ascensoresiruña.com", "www.ascensoresiruña.com" };
+    var allowedHosts = builder.Configuration["AllowedHosts"] ?? "*";
+    options.AllowedHosts = allowedHosts.Split(';', StringSplitOptions.RemoveEmptyEntries);
 });
 
 var app = builder.Build();
