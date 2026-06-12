@@ -46,15 +46,18 @@
 
 .close-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.5rem;
+  right: 0.5rem;
   background: none;
   border: none;
   color: #6c757d;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.5rem;
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 4px;
   transition: color 0.2s, background 0.2s;
 }
@@ -66,7 +69,7 @@
 
 .ok-btn {
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.75rem;
   border: 1px solid #dee2e6;
   border-radius: 8px;
   background: #1a1a2e;

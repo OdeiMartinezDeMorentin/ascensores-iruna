@@ -27,15 +27,18 @@
 
 .close-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.5rem;
+  right: 0.5rem;
   background: none;
   border: none;
   color: #6c757d;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.5rem;
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 4px;
   transition: color 0.2s, background 0.2s;
 }
@@ -62,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border: 2px solid #dee2e6;
   border-radius: 10px;
   background: #fff;
@@ -98,8 +101,8 @@
 }
 
 .status-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .status-text {
@@ -109,7 +112,7 @@
 
 .cancel-btn {
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.75rem;
   border: 1px solid #dee2e6;
   border-radius: 8px;
   background: #fff;
@@ -130,7 +133,7 @@
 
 .back-btn {
   flex: 1;
-  padding: 0.6rem;
+  padding: 0.75rem;
   border: 1px solid #dee2e6;
   border-radius: 8px;
   background: #fff;
@@ -146,7 +149,7 @@
 
 .delete-btn {
   flex: 1;
-  padding: 0.6rem;
+  padding: 0.75rem;
   border: 1px solid #dee2e6;
   border-radius: 8px;
   background: #fff;

@@ -59,17 +59,14 @@ public class ElevatorsController : ControllerBase
     }
 
     [HttpPost("{id}/reports")]
+    [RequestSizeLimit(1024)]
     public async Task<ActionResult<StatusReportDto>> CreateReport(int id, CreateReportDto dto)
     {
         var elevator = await _context.Elevators.FindAsync(id);
         if (elevator is null)
             return NotFound();
 
-        if (!Enum.TryParse<ElevatorStatus>(dto.Status, true, out var status))
-            return BadRequest($"Invalid status. Valid values: {string.Join(", ", Enum.GetNames<ElevatorStatus>().Where(s => s != nameof(ElevatorStatus.Desconocido) && s != nameof(ElevatorStatus.Parcial)))}");
-
-        if (status == ElevatorStatus.Desconocido || status == ElevatorStatus.Parcial)
-            return BadRequest("Solo puedes reportar los estados 'Operativo' o 'NoOperativo'.");
+        var status = Enum.Parse<ElevatorStatus>(dto.Status);
 
         var ipHash = GetClientIpHash();
         var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
@@ -129,17 +126,14 @@ public class ElevatorsController : ControllerBase
     }
 
     [HttpPut("{id}/reports/latest")]
+    [RequestSizeLimit(1024)]
     public async Task<ActionResult<StatusReportDto>> UpdateLatestReport(int id, UpdateReportDto dto)
     {
         var elevator = await _context.Elevators.FindAsync(id);
         if (elevator is null)
             return NotFound();
 
-        if (!Enum.TryParse<ElevatorStatus>(dto.Status, true, out var status))
-            return BadRequest($"Invalid status. Valid values: {string.Join(", ", Enum.GetNames<ElevatorStatus>().Where(s => s != nameof(ElevatorStatus.Desconocido) && s != nameof(ElevatorStatus.Parcial)))}");
-
-        if (status == ElevatorStatus.Desconocido || status == ElevatorStatus.Parcial)
-            return BadRequest("Solo puedes reportar los estados 'Operativo' o 'NoOperativo'.");
+        var status = Enum.Parse<ElevatorStatus>(dto.Status);
 
         var ipHash = GetClientIpHash();
         var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
@@ -224,8 +218,9 @@ public class ElevatorsController : ControllerBase
 
     private string GetClientIpHash()
     {
-        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return _ipHashService.HashIp(ip);
+        var ip = HttpContext.Connection.RemoteIpAddress
+            ?? throw new InvalidOperationException("No se pudo determinar la IP del cliente.");
+        return _ipHashService.HashIp(ip.ToString());
     }
 
     private async Task<ElevatorDto> MapToDtoAsync(Elevator elevator, string ipHash)

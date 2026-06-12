@@ -49,12 +49,15 @@
   border: none;
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  padding: 0;
+  padding: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: color 0.2s;
+  border-radius: 50%;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .info-btn svg {
@@ -149,6 +152,15 @@
   .app-header {
     flex-direction: column;
     align-items: stretch;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .suggestion-text {
+    font-size: 0.65rem;
   }
 
   .header-actions {
@@ -160,18 +172,23 @@
     flex: 1;
   }
 
+  .search-bar input {
+    font-size: 16px;
+  }
+
   .app-main {
     flex-direction: column;
     height: auto;
   }
 
   .map-panel {
-    height: 50vh;
+    height: 45vh;
     flex: none;
   }
 
   .list-panel {
     flex: none;
+    min-height: 40vh;
     border-left: none;
     border-top: 1px solid #dee2e6;
   }

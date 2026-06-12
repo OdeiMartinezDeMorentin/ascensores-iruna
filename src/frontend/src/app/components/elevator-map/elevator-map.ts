@@ -19,6 +19,7 @@ export class ElevatorMap {
   private markers: L.Marker[] = [];
   private pinnedMarker: L.Marker | null = null;
   private hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   constructor() {
     effect(() => {
@@ -75,22 +76,40 @@ export class ElevatorMap {
         .addTo(this.map)
         .bindPopup(this.createPopupContent(elevator), { closeButton: true });
 
-      marker.on('mouseover', () => {
-        if (this.hoverTimeout) {
-          clearTimeout(this.hoverTimeout);
-          this.hoverTimeout = null;
-        }
-        if (this.pinnedMarker && this.pinnedMarker !== marker) {
-          this.pinnedMarker.closePopup();
-          this.pinnedMarker = null;
-        }
-        marker.openPopup();
-      });
+      if (!this.isTouchDevice) {
+        marker.on('mouseover', () => {
+          if (this.hoverTimeout) {
+            clearTimeout(this.hoverTimeout);
+            this.hoverTimeout = null;
+          }
+          if (this.pinnedMarker && this.pinnedMarker !== marker) {
+            this.pinnedMarker.closePopup();
+            this.pinnedMarker = null;
+          }
+          marker.openPopup();
+        });
 
-      marker.on('mouseout', () => {
-        if (this.pinnedMarker === marker) return;
-        this.scheduleClose(marker);
-      });
+        marker.on('mouseout', () => {
+          if (this.pinnedMarker === marker) return;
+          this.scheduleClose(marker);
+        });
+
+        marker.on('popupopen', () => {
+          const popupEl = marker.getPopup()?.getElement();
+          if (popupEl) {
+            popupEl.addEventListener('mouseenter', () => {
+              if (this.hoverTimeout) {
+                clearTimeout(this.hoverTimeout);
+                this.hoverTimeout = null;
+              }
+            });
+            popupEl.addEventListener('mouseleave', () => {
+              if (this.pinnedMarker === marker) return;
+              this.scheduleClose(marker);
+            });
+          }
+        });
+      }
 
       marker.on('click', () => {
         if (this.hoverTimeout) {
@@ -115,22 +134,6 @@ export class ElevatorMap {
         }
       });
 
-      marker.on('popupopen', () => {
-        const popupEl = marker.getPopup()?.getElement();
-        if (popupEl) {
-          popupEl.addEventListener('mouseenter', () => {
-            if (this.hoverTimeout) {
-              clearTimeout(this.hoverTimeout);
-              this.hoverTimeout = null;
-            }
-          });
-          popupEl.addEventListener('mouseleave', () => {
-            if (this.pinnedMarker === marker) return;
-            this.scheduleClose(marker);
-          });
-        }
-      });
-
       this.markers.push(marker);
     }
   }
@@ -144,19 +147,19 @@ export class ElevatorMap {
 
   private createIcon(status: string): L.DivIcon {
     const icons: Record<string, string> = {
-      'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#28a745" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#28a745" stroke="#fff" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="2.5" fill="none"/></svg>`,
-      'Parcial': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#ffc107" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#ffc107" stroke="#fff" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke="#fff" stroke-width="2.5"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="#fff" stroke-width="2.5"/></svg>`,
-      'NoOperativo': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#dc3545" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#dc3545" stroke="#fff" stroke-width="2"/><path d="m15 9-6 6" stroke="#fff" stroke-width="2.5"/><path d="m9 9 6 6" stroke="#fff" stroke-width="2.5"/></svg>`,
-      'Desconocido': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#6c757d" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#6c757d" stroke="#fff" stroke-width="2"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#fff" stroke-width="2" fill="none"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="#fff" stroke-width="2.5"/></svg>`
+      'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#28a745" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#28a745" stroke="#fff" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="2.5" fill="none"/></svg>`,
+      'Parcial': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#ffc107" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#ffc107" stroke="#fff" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke="#fff" stroke-width="2.5"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="#fff" stroke-width="2.5"/></svg>`,
+      'NoOperativo': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#dc3545" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#dc3545" stroke="#fff" stroke-width="2"/><path d="m15 9-6 6" stroke="#fff" stroke-width="2.5"/><path d="m9 9 6 6" stroke="#fff" stroke-width="2.5"/></svg>`,
+      'Desconocido': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#6c757d" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#6c757d" stroke="#fff" stroke-width="2"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#fff" stroke-width="2" fill="none"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="#fff" stroke-width="2.5"/></svg>`
     };
     const svg = icons[status] ?? icons['Desconocido'];
 
     return L.divIcon({
       className: 'elevator-marker',
-      html: `<div style="width:28px;height:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))">${svg}</div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -16]
+      html: `<div style="width:36px;height:36px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))">${svg}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -20]
     });
   }
 
@@ -189,8 +192,8 @@ export class ElevatorMap {
 
     const btnText = elevator.canReport ? 'Reportar estado' : 'Modificar reporte';
     const btnStyle = elevator.canReport
-      ? 'width:100%;padding:6px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.85rem;cursor:pointer;'
-      : 'width:100%;padding:6px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.85rem;cursor:pointer;';
+      ? 'width:100%;padding:10px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.9rem;cursor:pointer;'
+      : 'width:100%;padding:10px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.9rem;cursor:pointer;';
 
     return `
       <div style="font-family:Inter,-apple-system,sans-serif;min-width:180px">
