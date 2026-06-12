@@ -160,6 +160,15 @@ export class ElevatorMap {
     });
   }
 
+  private escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   private createPopupContent(elevator: Elevator): string {
     const statusIcons: Record<string, string> = {
       'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
@@ -175,8 +184,8 @@ export class ElevatorMap {
     };
     const icon = statusIcons[elevator.currentStatus] ?? statusIcons['Desconocido'];
     const label = statusLabels[elevator.currentStatus] ?? 'Sin reportes';
-    const escapedName = elevator.name.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-    const escapedLocation = elevator.location.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    const escapedName = this.escapeHtml(elevator.name);
+    const escapedLocation = this.escapeHtml(elevator.location);
 
     const btnText = elevator.canReport ? 'Reportar estado' : 'Modificar reporte';
     const btnStyle = elevator.canReport

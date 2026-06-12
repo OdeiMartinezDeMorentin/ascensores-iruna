@@ -1,5 +1,8 @@
 <div class="dialog-overlay" (click)="close()">
   <div class="dialog" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="close()" aria-label="Cerrar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <h2>{{ isEditing() ? 'Modificar reporte' : 'Reportar estado' }}</h2>
     <p class="dialog-elevator-name">{{ elevatorName() }}</p>
 
@@ -9,15 +12,22 @@
 
     <div class="status-options">
       <button class="status-option operativo" (click)="selectStatus('Operativo')">
-        <span class="status-dot"></span>
+        <span class="status-icon" [innerHTML]="operativoIcon()"></span>
         <span class="status-text">Operativo</span>
       </button>
       <button class="status-option no-operativo" (click)="selectStatus('NoOperativo')">
-        <span class="status-dot"></span>
+        <span class="status-icon" [innerHTML]="noOperativoIcon()"></span>
         <span class="status-text">No operativo</span>
       </button>
     </div>
 
-    <button class="cancel-btn" (click)="close()">Cancelar</button>
+    @if (isEditing()) {
+      <div class="dialog-actions">
+        <button class="back-btn" (click)="close()">Cancelar</button>
+        <button class="delete-btn" (click)="deleteReport()">Anular reporte</button>
+      </div>
+    } @else {
+      <button class="cancel-btn" (click)="close()">Cancelar</button>
+    }
   </div>
 </div>

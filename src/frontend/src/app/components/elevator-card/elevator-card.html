@@ -8,10 +8,11 @@
   </div>
   <div class="card-details">
     <span class="status-label">{{ statusLabel() }}</span>
-    @if (timeAgo()) {
-      <span class="time-ago">Reportado {{ timeAgo() }}</span>
+    @if (elevator().recentReports > 0) {
+      <span class="report-count">{{ elevator().recentReports }} reporte{{ elevator().recentReports === 1 ? '' : 's' }} en la última hora</span>
+    } @else if (timeAgo()) {
+      <span class="time-ago">Último reporte {{ timeAgo() }}</span>
     }
-    <span class="report-count">{{ elevator().totalReports }} reportes</span>
   </div>
   @if (elevator().canReport) {
     <button class="report-btn" (click)="reportClicked.emit(elevator().id)">

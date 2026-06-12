@@ -75,44 +75,57 @@ public class ElevatorsController : ControllerBase
         var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
         var windowStart = now.Subtract(RateLimitWindow);
 
-        var recentReportForElevator = await _context.StatusReports
-            .AnyAsync(r => r.ElevatorId == id && r.IpAddressHash == ipHash && r.ReportedAt >= windowStart);
+        using var transaction = await _context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable);
 
-        if (recentReportForElevator)
-            return StatusCode(429, "Ya has reportado este ascensor en los últimos 10 minutos. Puedes editar tu reporte si lo deseas.");
-
-        var distinctElevatorsInWindow = await _context.StatusReports
-            .Where(r => r.IpAddressHash == ipHash && r.ReportedAt >= windowStart)
-            .Select(r => r.ElevatorId)
-            .Distinct()
-            .CountAsync();
-
-        if (distinctElevatorsInWindow >= MaxElevatorsPerWindow)
-            return StatusCode(429, "Has alcanzado el máximo de reportes, espera 10 minutos.");
-
-        var report = new StatusReport
+        try
         {
-            ElevatorId = id,
-            Status = status,
-            ReportedAt = now,
-            IpAddressHash = ipHash
-        };
+            var recentReportForElevator = await _context.StatusReports
+                .AnyAsync(r => r.ElevatorId == id && r.IpAddressHash == ipHash && r.ReportedAt >= windowStart);
 
-        _context.StatusReports.Add(report);
-        await _context.SaveChangesAsync();
+            if (recentReportForElevator)
+                return StatusCode(429, "Ya has reportado este ascensor en los últimos 10 minutos. Puedes editar tu reporte si lo deseas.");
 
-        await _trustService.UpdateTrustScoresAsync(id, status, ipHash, now);
+            var distinctElevatorsInWindow = await _context.StatusReports
+                .Where(r => r.IpAddressHash == ipHash && r.ReportedAt >= windowStart)
+                .Select(r => r.ElevatorId)
+                .Distinct()
+                .CountAsync();
 
-        return CreatedAtAction(
-            nameof(GetElevator),
-            new { id },
-            new StatusReportDto
+            if (distinctElevatorsInWindow >= MaxElevatorsPerWindow)
+                return StatusCode(429, "Has alcanzado el máximo de reportes, espera 10 minutos.");
+
+            var report = new StatusReport
             {
-                Id = report.Id,
-                ElevatorId = report.ElevatorId,
-                Status = report.Status.ToString(),
-                ReportedAt = report.ReportedAt
-            });
+                ElevatorId = id,
+                Status = status,
+                ReportedAt = now,
+                IpAddressHash = ipHash
+            };
+
+            _context.StatusReports.Add(report);
+            await _context.SaveChangesAsync();
+
+            await _trustService.UpdateTrustScoresAsync(id, status, ipHash, now);
+
+            await transaction.CommitAsync();
+
+            return CreatedAtAction(
+                nameof(GetElevator),
+                new { id },
+                new StatusReportDto
+                {
+                    Id = report.Id,
+                    ElevatorId = report.ElevatorId,
+                    Status = report.Status.ToString(),
+                    ReportedAt = report.ReportedAt
+                });
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     [HttpPut("{id}/reports/latest")]
@@ -156,6 +169,31 @@ public class ElevatorsController : ControllerBase
         });
     }
 
+    [HttpDelete("{id}/reports/latest")]
+    public async Task<IActionResult> DeleteLatestReport(int id)
+    {
+        var elevator = await _context.Elevators.FindAsync(id);
+        if (elevator is null)
+            return NotFound();
+
+        var ipHash = GetClientIpHash();
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+        var windowStart = now.Subtract(RateLimitWindow);
+
+        var report = await _context.StatusReports
+            .Where(r => r.ElevatorId == id && r.IpAddressHash == ipHash && r.ReportedAt >= windowStart)
+            .OrderByDescending(r => r.ReportedAt)
+            .FirstOrDefaultAsync();
+
+        if (report is null)
+            return NotFound("No tienes un reporte reciente para este ascensor.");
+
+        _context.StatusReports.Remove(report);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpGet("{id}/reports/my-latest")]
     public async Task<ActionResult<MyLatestReportDto>> GetMyLatestReport(int id)
     {
@@ -187,10 +225,6 @@ public class ElevatorsController : ControllerBase
     private string GetClientIpHash()
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(forwardedFor))
-            ip = forwardedFor.Split(',', StringSplitOptions.TrimEntries)[0];
-
         return _ipHashService.HashIp(ip);
     }
 
@@ -214,6 +248,7 @@ public class ElevatorsController : ControllerBase
             CurrentStatus = statusResult.Status.ToString(),
             LastReportedAt = statusResult.LastReportedAt,
             TotalReports = statusResult.TotalReports,
+            RecentReports = statusResult.RecentReports,
             CanReport = canReport
         };
     }

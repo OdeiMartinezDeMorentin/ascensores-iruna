@@ -136,4 +136,19 @@ export class ElevatorService {
         });
     });
   }
+
+  deleteReport(elevatorId: number): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.http.delete(`${this.apiUrl}/${elevatorId}/reports/latest`, { observe: 'response', responseType: 'json' })
+        .subscribe({
+          next: () => {
+            this.loadElevators();
+            resolve(null);
+          },
+          error: (err) => {
+            resolve(err.message || 'Error al anular el reporte.');
+          }
+        });
+    });
+  }
 }

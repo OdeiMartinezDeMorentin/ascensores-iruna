@@ -78,6 +78,15 @@ export class App implements OnDestroy {
     this.errorMessage.set(null);
   }
 
+  async onReportDeleted(elevatorId: number): Promise<void> {
+    const error = await this.elevatorService.deleteReport(elevatorId);
+    if (error) {
+      this.errorMessage.set(error);
+    } else {
+      this.showDialog.set(false);
+    }
+  }
+
   onSearchInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.elevatorService.searchTerm.set(value);

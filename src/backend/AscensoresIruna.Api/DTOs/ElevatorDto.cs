@@ -10,5 +10,6 @@ public class ElevatorDto
     public string CurrentStatus { get; set; } = string.Empty;
     public DateTime? LastReportedAt { get; set; }
     public int TotalReports { get; set; }
+    public int RecentReports { get; set; }
     public bool CanReport { get; set; }
 }

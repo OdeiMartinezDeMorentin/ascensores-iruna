@@ -7,6 +7,7 @@ export interface Elevator {
   currentStatus: string;
   lastReportedAt: string | null;
   totalReports: number;
+  recentReports: number;
   canReport: boolean;
 }
 

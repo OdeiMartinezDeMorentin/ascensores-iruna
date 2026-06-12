@@ -29,13 +29,17 @@ public class ElevatorStatusService
             {
                 Status = ElevatorStatus.Desconocido,
                 LastReportedAt = null,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId)
+                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+                RecentReports = 0
             };
 
         var ipHashes = reports.Select(r => r.IpAddressHash).Distinct().ToList();
         var reporterTrusts = await _context.ReporterIps
             .Where(ri => ipHashes.Contains(ri.IpAddressHash))
             .ToDictionaryAsync(ri => ri.IpAddressHash, ri => ri.TrustScore);
+
+        var oneHourAgo = now.AddHours(-1);
+        var recentReports = reports.Count(r => r.ReportedAt >= oneHourAgo);
 
         bool onlyHasOneReportEver = !await _context.StatusReports
             .AnyAsync(r => r.ElevatorId == elevatorId && r.ReportedAt < twoHoursAgo);
@@ -71,7 +75,8 @@ public class ElevatorStatusService
             {
                 Status = firstReport.Status,
                 LastReportedAt = firstReport.ReportedAt,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId)
+                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+                RecentReports = recentReports
             };
         }
 
@@ -81,17 +86,19 @@ public class ElevatorStatusService
             {
                 Status = ElevatorStatus.Desconocido,
                 LastReportedAt = reports.First().ReportedAt,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId)
+                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+                RecentReports = recentReports
             };
 
         var bestWeight = Math.Max(operativoWeight, noOperativoWeight);
         if (bestWeight == 0)
         {
             return new ElevatorStatusResult
-            {
-                Status = parcialWeight > 0 ? ElevatorStatus.Parcial : ElevatorStatus.Desconocido,
+        {
+            Status = parcialWeight > 0 ? ElevatorStatus.Parcial : ElevatorStatus.Desconocido,
                 LastReportedAt = reports.First().ReportedAt,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId)
+                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+                RecentReports = recentReports
             };
         }
 
@@ -109,7 +116,8 @@ public class ElevatorStatusService
         {
             Status = bestStatus,
             LastReportedAt = reports.First().ReportedAt,
-            TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId)
+            TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+            RecentReports = recentReports
         };
     }
 
@@ -129,4 +137,5 @@ public class ElevatorStatusResult
     public ElevatorStatus Status { get; set; }
     public DateTime? LastReportedAt { get; set; }
     public int TotalReports { get; set; }
+    public int RecentReports { get; set; }
 }

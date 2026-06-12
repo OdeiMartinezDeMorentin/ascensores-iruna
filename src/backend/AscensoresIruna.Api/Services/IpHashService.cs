@@ -10,8 +10,9 @@ public class IpHashService
 
     public IpHashService(IConfiguration configuration)
     {
-        var secret = configuration["HmacSecret"]
-            ?? throw new InvalidOperationException("HmacSecret is not configured.");
+        var secret = Environment.GetEnvironmentVariable("HMAC_SECRET")
+            ?? configuration["HmacSecret"]
+            ?? throw new InvalidOperationException("HMAC_SECRET environment variable or HmacSecret config is not configured.");
         _secretKey = Encoding.UTF8.GetBytes(secret);
     }
 
