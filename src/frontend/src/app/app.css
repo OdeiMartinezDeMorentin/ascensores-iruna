@@ -38,6 +38,34 @@
   opacity: 0.5;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.info-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.info-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+.info-btn:hover {
+  color: #fff;
+}
+
 .app-header .search-bar {
   margin: 0;
   flex: none;
@@ -123,8 +151,13 @@
     align-items: stretch;
   }
 
+  .header-actions {
+    justify-content: center;
+  }
+
   .app-header .search-bar {
     width: auto;
+    flex: 1;
   }
 
   .app-main {

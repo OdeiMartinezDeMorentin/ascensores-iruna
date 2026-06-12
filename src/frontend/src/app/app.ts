@@ -2,12 +2,13 @@ import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { ElevatorList } from './components/elevator-list/elevator-list';
 import { ElevatorMap } from './components/elevator-map/elevator-map';
 import { ReportDialog } from './components/report-dialog/report-dialog';
+import { InfoDialog } from './components/info-dialog/info-dialog';
 import { ElevatorService } from './services/elevator.service';
 import { ElevatorStatus } from './models/elevator.model';
 
 @Component({
   selector: 'app-root',
-  imports: [ElevatorMap, ElevatorList, ReportDialog],
+  imports: [ElevatorMap, ElevatorList, ReportDialog, InfoDialog],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -19,6 +20,7 @@ export class App implements OnDestroy {
   readonly selectedElevatorName = signal('');
   readonly isEditing = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly showInfoDialog = signal(false);
   readonly searchTerm = this.elevatorService.searchTerm;
 
   private readonly handleReportEvent = (e: Event) => {

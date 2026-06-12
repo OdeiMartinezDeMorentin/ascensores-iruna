@@ -1,0 +1,22 @@
+<div class="dialog-overlay" (click)="close()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="close()" aria-label="Cerrar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <h2>Cómo funciona</h2>
+    <p>Los usuarios reportan si un ascensor está operativo o no. El estado mostrado se calcula dando más peso a los reportes recientes y a los usuarios con buena reputación. Si los reportes son contradictorios, se muestra "Reportes contradictorios".</p>
+
+    <h3>Aviso</h3>
+    <p>Este es un proyecto independiente y no está relacionado con el Ayuntamiento de Pamplona.</p>
+
+    <h3>Uso responsable</h3>
+    <p>La utilidad de esta web depende del uso responsable y cooperativo de sus usuarios. Por favor, reporta únicamente el estado real de los ascensores.</p>
+
+    <h3>Privacidad</h3>
+    <p>Se almacena un hash de tu dirección IP (HMAC-SHA256) para prevenir abusos y calcular tu reputación como reportero. No se almacena tu IP real ni ningún otro dato personal. Los datos se retienen durante un máximo de 30 días.</p>
+    <p>Cualquier consulta: odeimardemor@gmail.com</p>
+
+    <button class="ok-btn" (click)="close()">Entendido</button>
+  </div>
+</div>
