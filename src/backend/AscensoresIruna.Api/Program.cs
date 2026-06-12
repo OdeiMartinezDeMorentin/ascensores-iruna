@@ -53,6 +53,8 @@ builder.Services.Configure<Microsoft.AspNetCore.HostFiltering.HostFilteringOptio
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler(builder =>
@@ -64,10 +66,6 @@ if (!app.Environment.IsDevelopment())
             await context.Response.WriteAsJsonAsync(new { error = "Ha ocurrido un error interno." });
         });
     });
-}
-
-if (!app.Environment.IsDevelopment())
-{
     app.UseHttpsRedirection();
     app.UseHsts();
 }
@@ -86,18 +84,13 @@ app.Use(async (context, next) =>
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseCors("AllowFrontend");
 }
 
 app.UseMiddleware<RateLimitMiddleware>();
 
-app.UseForwardedHeaders();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors("AllowFrontend");
-}
-
 app.UseAuthorization();
+
 app.MapControllers();
 
 var dataDir = Path.Combine(builder.Environment.ContentRootPath, "data");
@@ -110,5 +103,9 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
     SeedData.Initialize(scope.ServiceProvider);
 }
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.MapFallbackToFile("index.html");
 
 app.Run();

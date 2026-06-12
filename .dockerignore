@@ -1,0 +1,16 @@
+# Dependencias y compilaciones
+node_modules/
+dist/
+.angular/
+bin/
+obj/
+
+# Entornos y control de versiones
+.git/
+.vscode/
+.idea/
+
+# Base de datos local y secretos
+data/
+appsettings.Development.json
+appsettings.*.json

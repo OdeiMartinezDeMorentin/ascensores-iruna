@@ -1,0 +1,14 @@
+services:
+  ascensores-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - HMAC_SECRET=tu_secreto_super_seguro_para_pruebas_locales
+      # Apuntamos SQLite al volumen mapeado para no perder datos si el contenedor se reinicia
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/ascensores.db
+    volumes:
+      - ./data:/app/data
