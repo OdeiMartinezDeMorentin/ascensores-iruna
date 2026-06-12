@@ -61,19 +61,11 @@
   background: #e8f5e9;
 }
 
-.status-option.parcial {
-  border-color: #ffc107;
-}
-
-.status-option.parcial:hover {
-  background: #fff8e1;
-}
-
-.status-option.averiado {
+.status-option.no-operativo {
   border-color: #dc3545;
 }
 
-.status-option.averiado:hover {
+.status-option.no-operativo:hover {
   background: #ffebee;
 }
 
@@ -88,11 +80,7 @@
   background: #28a745;
 }
 
-.parcial .status-dot {
-  background: #ffc107;
-}
-
-.averiado .status-dot {
+.no-operativo .status-dot {
   background: #dc3545;
 }
 

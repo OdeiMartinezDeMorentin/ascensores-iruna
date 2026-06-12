@@ -11,7 +11,7 @@ import { ElevatorCard } from '../elevator-card/elevator-card';
 export class ElevatorList {
   private readonly elevatorService = inject(ElevatorService);
 
-  readonly elevators = this.elevatorService.elevatorsList;
+  readonly elevators = this.elevatorService.filteredElevators;
   readonly isLoading = this.elevatorService.isLoading;
   readonly hasError = this.elevatorService.hasError;
 

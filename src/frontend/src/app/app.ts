@@ -19,6 +19,7 @@ export class App implements OnDestroy {
   readonly selectedElevatorName = signal('');
   readonly isEditing = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly searchTerm = this.elevatorService.searchTerm;
 
   private readonly handleReportEvent = (e: Event) => {
     const customEvent = e as CustomEvent<number>;
@@ -38,7 +39,7 @@ export class App implements OnDestroy {
     if (elevator) {
       this.selectedElevatorId.set(elevatorId);
       this.selectedElevatorName.set(elevator.name);
-      this.isEditing.set(false);
+      this.isEditing.set(!elevator.canReport);
       this.errorMessage.set(null);
       this.showDialog.set(true);
     }
@@ -75,5 +76,14 @@ export class App implements OnDestroy {
   onDialogClosed(): void {
     this.showDialog.set(false);
     this.errorMessage.set(null);
+  }
+
+  onSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.elevatorService.searchTerm.set(value);
+  }
+
+  clearSearch(): void {
+    this.elevatorService.searchTerm.set('');
   }
 }

@@ -2,6 +2,21 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Elevator, CreateReportDto, UpdateReportDto, MyLatestReport } from '../models/elevator.model';
 
+const SITE_GROUPS: string[][] = [
+  ['Descalzos'],
+  ['Concepción Benítez', 'Concepcion Benitez']
+];
+
+function getGroupKey(name: string): string | null {
+  const lower = name.toLowerCase();
+  for (const keywords of SITE_GROUPS) {
+    if (keywords.some(k => lower.includes(k.toLowerCase()))) {
+      return keywords[0];
+    }
+  }
+  return null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ElevatorService {
   private readonly http = inject(HttpClient);
@@ -10,8 +25,42 @@ export class ElevatorService {
   private readonly elevators = signal<Elevator[]>([]);
   private readonly loading = signal(false);
   private readonly error = signal<string | null>(null);
+  readonly searchTerm = signal('');
 
   readonly elevatorsList = computed(() => this.elevators());
+  readonly filteredElevators = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const source = this.elevators();
+    const filtered = term
+      ? source.filter(e => e.name.toLowerCase().includes(term) || e.location.toLowerCase().includes(term))
+      : source;
+
+    const groupTotals = new Map<string, { sum: number; count: number }>();
+    for (const e of filtered) {
+      const key = getGroupKey(e.name);
+      if (key) {
+        const prev = groupTotals.get(key) ?? { sum: 0, count: 0 };
+        groupTotals.set(key, { sum: prev.sum + e.totalReports, count: prev.count + 1 });
+      }
+    }
+
+    const getSortScore = (e: Elevator): number => {
+      const key = getGroupKey(e.name);
+      if (!key) return e.totalReports;
+      const g = groupTotals.get(key)!;
+      return g.count > 0 ? g.sum / g.count : e.totalReports;
+    };
+
+    return [...filtered].sort((a, b) => {
+      const scoreA = getSortScore(a);
+      const scoreB = getSortScore(b);
+      if (scoreA !== scoreB) return scoreB - scoreA;
+      const keyA = getGroupKey(a.name);
+      const keyB = getGroupKey(b.name);
+      if (keyA && keyA === keyB) return a.id - b.id;
+      return 0;
+    });
+  });
   readonly isLoading = computed(() => this.loading());
   readonly hasError = computed(() => this.error());
 
@@ -40,7 +89,8 @@ export class ElevatorService {
           },
           error: (err) => {
             if (err.status === 429) {
-              resolve(err.error?.message || 'Has alcanzado el límite de reportes.');
+              const msg = typeof err.error === 'string' ? err.error : err.error?.message;
+              resolve(msg || 'Has alcanzado el máximo de reportes, espera 10 minutos.');
             } else {
               resolve(err.message);
             }
@@ -59,7 +109,8 @@ export class ElevatorService {
           },
           error: (err) => {
             if (err.status === 429) {
-              resolve(err.error?.message || 'Has alcanzado el límite de reportes.');
+              const msg = typeof err.error === 'string' ? err.error : err.error?.message;
+              resolve(msg || 'Has alcanzado el máximo de reportes, espera 10 minutos.');
             } else {
               resolve(err.message);
             }

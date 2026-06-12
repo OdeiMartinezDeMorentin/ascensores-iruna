@@ -66,10 +66,10 @@ public class ElevatorsController : ControllerBase
             return NotFound();
 
         if (!Enum.TryParse<ElevatorStatus>(dto.Status, true, out var status))
-            return BadRequest($"Invalid status. Valid values: {string.Join(", ", Enum.GetNames<ElevatorStatus>().Where(s => s != nameof(ElevatorStatus.Desconocido)))}");
+            return BadRequest($"Invalid status. Valid values: {string.Join(", ", Enum.GetNames<ElevatorStatus>().Where(s => s != nameof(ElevatorStatus.Desconocido) && s != nameof(ElevatorStatus.Parcial)))}");
 
-        if (status == ElevatorStatus.Desconocido)
-            return BadRequest("Cannot report 'Desconocido' status.");
+        if (status == ElevatorStatus.Desconocido || status == ElevatorStatus.Parcial)
+            return BadRequest("Solo puedes reportar los estados 'Operativo' o 'NoOperativo'.");
 
         var ipHash = GetClientIpHash();
         var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
@@ -88,7 +88,7 @@ public class ElevatorsController : ControllerBase
             .CountAsync();
 
         if (distinctElevatorsInWindow >= MaxElevatorsPerWindow)
-            return StatusCode(429, "Has alcanzado el límite de 3 ascensores en los últimos 10 minutos. Inténtalo más tarde.");
+            return StatusCode(429, "Has alcanzado el máximo de reportes, espera 10 minutos.");
 
         var report = new StatusReport
         {
@@ -123,10 +123,10 @@ public class ElevatorsController : ControllerBase
             return NotFound();
 
         if (!Enum.TryParse<ElevatorStatus>(dto.Status, true, out var status))
-            return BadRequest($"Invalid status. Valid values: {string.Join(", ", Enum.GetNames<ElevatorStatus>().Where(s => s != nameof(ElevatorStatus.Desconocido)))}");
+            return BadRequest($"Invalid status. Valid values: {string.Join(", ", Enum.GetNames<ElevatorStatus>().Where(s => s != nameof(ElevatorStatus.Desconocido) && s != nameof(ElevatorStatus.Parcial)))}");
 
-        if (status == ElevatorStatus.Desconocido)
-            return BadRequest("Cannot report 'Desconocido' status.");
+        if (status == ElevatorStatus.Desconocido || status == ElevatorStatus.Parcial)
+            return BadRequest("Solo puedes reportar los estados 'Operativo' o 'NoOperativo'.");
 
         var ipHash = GetClientIpHash();
         var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));

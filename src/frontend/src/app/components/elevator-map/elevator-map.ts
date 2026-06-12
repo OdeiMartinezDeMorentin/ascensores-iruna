@@ -22,7 +22,7 @@ export class ElevatorMap {
 
   constructor() {
     effect(() => {
-      const elevators = this.elevatorService.elevatorsList();
+      const elevators = this.elevatorService.filteredElevators();
       if (elevators.length > 0) {
         this.updateMarkers(elevators);
       }
@@ -31,7 +31,7 @@ export class ElevatorMap {
 
   ngAfterViewInit(): void {
     this.initMap();
-    const elevators = this.elevatorService.elevatorsList();
+    const elevators = this.elevatorService.filteredElevators();
     if (elevators.length > 0) {
       this.updateMarkers(elevators);
     }
@@ -143,54 +143,56 @@ export class ElevatorMap {
   }
 
   private createIcon(status: string): L.DivIcon {
-    const colorMap: Record<string, string> = {
-      'Operativo': '#28a745',
-      'Parcial': '#ffc107',
-      'Averiado': '#dc3545',
-      'Desconocido': '#6c757d'
+    const icons: Record<string, string> = {
+      'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#28a745" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#28a745" stroke="#fff" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="2.5" fill="none"/></svg>`,
+      'Parcial': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#ffc107" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#ffc107" stroke="#fff" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke="#fff" stroke-width="2.5"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="#fff" stroke-width="2.5"/></svg>`,
+      'NoOperativo': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#dc3545" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#dc3545" stroke="#fff" stroke-width="2"/><path d="m15 9-6 6" stroke="#fff" stroke-width="2.5"/><path d="m9 9 6 6" stroke="#fff" stroke-width="2.5"/></svg>`,
+      'Desconocido': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#6c757d" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#6c757d" stroke="#fff" stroke-width="2"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#fff" stroke-width="2" fill="none"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="#fff" stroke-width="2.5"/></svg>`
     };
-    const color = colorMap[status] ?? '#6c757d';
+    const svg = icons[status] ?? icons['Desconocido'];
 
     return L.divIcon({
       className: 'elevator-marker',
-      html: `<div style="
-        background:${color};
-        width:24px;height:24px;
-        border-radius:50%;
-        border:3px solid #fff;
-        box-shadow:0 2px 6px rgba(0,0,0,0.4);
-      "></div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-      popupAnchor: [0, -14]
+      html: `<div style="width:28px;height:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))">${svg}</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -16]
     });
   }
 
   private createPopupContent(elevator: Elevator): string {
-    const statusMap: Record<string, string> = {
-      'Operativo': '🟢 Operativo',
-      'Parcial': '🟡 Parcialmente operativo',
-      'Averiado': '🔴 Averiado',
-      'Desconocido': '⚪ Sin reportes'
+    const statusIcons: Record<string, string> = {
+      'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
+      'Parcial': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+      'NoOperativo': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`,
+      'Desconocido': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
     };
-    const statusLabel = statusMap[elevator.currentStatus] ?? '⚪ Sin reportes';
+    const statusLabels: Record<string, string> = {
+      'Operativo': 'Operativo',
+      'Parcial': 'Reportes contradictorios',
+      'NoOperativo': 'No operativo',
+      'Desconocido': 'Sin reportes'
+    };
+    const icon = statusIcons[elevator.currentStatus] ?? statusIcons['Desconocido'];
+    const label = statusLabels[elevator.currentStatus] ?? 'Sin reportes';
     const escapedName = elevator.name.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     const escapedLocation = elevator.location.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+
+    const btnText = elevator.canReport ? 'Reportar estado' : 'Modificar reporte';
+    const btnStyle = elevator.canReport
+      ? 'width:100%;padding:6px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.85rem;cursor:pointer;'
+      : 'width:100%;padding:6px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.85rem;cursor:pointer;';
 
     return `
       <div style="font-family:Inter,-apple-system,sans-serif;min-width:180px">
         <strong style="font-size:1rem;color:#1a1a2e">${escapedName}</strong>
         <p style="margin:2px 0 4px;color:#6c757d;font-size:0.85rem">${escapedLocation}</p>
-        <p style="margin:0 0 8px;font-size:0.9rem;font-weight:600">${statusLabel}</p>
+        <p style="margin:0 0 8px;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:4px">${icon} ${label}</p>
         <button
           onclick="document.dispatchEvent(new CustomEvent('report-elevator',{detail:${elevator.id}}))"
-          style="
-            width:100%;padding:6px 0;
-            border:1px solid #dee2e6;border-radius:8px;
-            background:#f8f9fa;color:#495057;
-            font-size:0.85rem;cursor:pointer;
-          ">
-          Reportar estado
+          style="${btnStyle}"
+        >
+          ${btnText}
         </button>
       </div>`;
   }

@@ -1,6 +1,6 @@
-<div class="elevator-card" [class]="elevator().currentStatus.toLowerCase()">
+<div class="elevator-card" [class]="statusClass()">
   <div class="card-header">
-    <span class="status-icon">{{ statusIcon() }}</span>
+    <span class="status-icon" [innerHTML]="statusIcon()"></span>
     <div class="card-info">
       <h3 class="elevator-name">{{ elevator().name }}</h3>
       <p class="elevator-location">{{ elevator().location }}</p>

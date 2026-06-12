@@ -4,6 +4,6 @@ public enum ElevatorStatus
 {
     Operativo = 0,
     Parcial = 1,
-    Averiado = 2,
+    NoOperativo = 2,
     Desconocido = 3
 }

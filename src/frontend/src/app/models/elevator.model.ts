@@ -10,7 +10,7 @@ export interface Elevator {
   canReport: boolean;
 }
 
-export type ElevatorStatus = 'Operativo' | 'Parcial' | 'Averiado' | 'Desconocido';
+export type ElevatorStatus = 'Operativo' | 'Parcial' | 'NoOperativo' | 'Desconocido';
 
 export interface CreateReportDto {
   status: string;
