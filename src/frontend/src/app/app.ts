@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ElevatorList } from './components/elevator-list/elevator-list';
 import { ElevatorMap } from './components/elevator-map/elevator-map';
 import { ReportDialog } from './components/report-dialog/report-dialog';
@@ -12,7 +12,7 @@ import { ElevatorStatus } from './models/elevator.model';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnDestroy {
+export class App {
   private readonly elevatorService = inject(ElevatorService);
 
   readonly showDialog = signal(false);
@@ -22,19 +22,6 @@ export class App implements OnDestroy {
   readonly errorMessage = signal<string | null>(null);
   readonly showInfoDialog = signal(false);
   readonly searchTerm = this.elevatorService.searchTerm;
-
-  private readonly handleReportEvent = (e: Event) => {
-    const customEvent = e as CustomEvent<number>;
-    this.openReportDialog(customEvent.detail);
-  };
-
-  constructor() {
-    document.addEventListener('report-elevator', this.handleReportEvent);
-  }
-
-  ngOnDestroy(): void {
-    document.removeEventListener('report-elevator', this.handleReportEvent);
-  }
 
   openReportDialog(elevatorId: number): void {
     const elevator = this.elevatorService.elevatorsList().find(e => e.id === elevatorId);

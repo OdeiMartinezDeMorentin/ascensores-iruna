@@ -72,9 +72,10 @@ export class ElevatorMap {
 
     for (const elevator of elevators) {
       const icon = this.createIcon(elevator.currentStatus);
+      const popupContent = this.createPopupContent(elevator);
       const marker = L.marker([elevator.latitude, elevator.longitude], { icon })
         .addTo(this.map)
-        .bindPopup(this.createPopupContent(elevator), { closeButton: true });
+        .bindPopup(popupContent, { closeButton: true });
 
       if (!this.isTouchDevice) {
         marker.on('mouseover', () => {
@@ -172,7 +173,7 @@ export class ElevatorMap {
       .replace(/'/g, '&#39;');
   }
 
-  private createPopupContent(elevator: Elevator): string {
+  private createPopupContent(elevator: Elevator): HTMLElement {
     const statusIcons: Record<string, string> = {
       'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
       'Parcial': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
@@ -195,17 +196,25 @@ export class ElevatorMap {
       ? 'width:100%;padding:10px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.9rem;cursor:pointer;'
       : 'width:100%;padding:10px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.9rem;cursor:pointer;';
 
-    return `
-      <div style="font-family:Inter,-apple-system,sans-serif;min-width:180px">
-        <strong style="font-size:1rem;color:#1a1a2e">${escapedName}</strong>
-        <p style="margin:2px 0 4px;color:#6c757d;font-size:0.85rem">${escapedLocation}</p>
-        <p style="margin:0 0 8px;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:4px">${icon} ${label}</p>
-        <button
-          onclick="document.dispatchEvent(new CustomEvent('report-elevator',{detail:${elevator.id}}))"
-          style="${btnStyle}"
-        >
-          ${btnText}
-        </button>
-      </div>`;
+    const container = document.createElement('div');
+    container.style.fontFamily = 'Inter,-apple-system,sans-serif';
+    container.style.minWidth = '180px';
+    container.innerHTML = `
+      <strong style="font-size:1rem;color:#1a1a2e">${escapedName}</strong>
+      <p style="margin:2px 0 4px;color:#6c757d;font-size:0.85rem">${escapedLocation}</p>
+      <p style="margin:0 0 8px;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:4px">${icon} ${label}</p>
+      <button style="${btnStyle}">${btnText}</button>
+    `;
+
+    const button = container.querySelector('button');
+    if (button) {
+      L.DomEvent.on(button, 'click', (e: Event) => {
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+        this.reportClicked.emit(elevator.id);
+      });
+    }
+
+    return container;
   }
 }
