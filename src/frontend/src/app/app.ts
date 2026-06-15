@@ -21,7 +21,12 @@ export class App {
   readonly isEditing = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly showInfoDialog = signal(false);
+  readonly mapFullscreen = signal(false);
   readonly searchTerm = this.elevatorService.searchTerm;
+
+  toggleMapFullscreen(): void {
+    this.mapFullscreen.update(v => !v);
+  }
 
   openReportDialog(elevatorId: number): void {
     const elevator = this.elevatorService.elevatorsList().find(e => e.id === elevatorId);

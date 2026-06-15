@@ -1,4 +1,4 @@
-import { Component, effect, inject, output, ElementRef, ViewChild } from '@angular/core';
+import { Component, effect, inject, output, ElementRef, ViewChild, input } from '@angular/core';
 import * as L from 'leaflet';
 import { ElevatorService } from '../../services/elevator.service';
 import { Elevator } from '../../models/elevator.model';
@@ -12,7 +12,9 @@ import { Elevator } from '../../models/elevator.model';
 export class ElevatorMap {
   private readonly elevatorService = inject(ElevatorService);
 
+  readonly fullscreen = input(false);
   readonly reportClicked = output<number>();
+  readonly fullscreenToggled = output<void>();
 
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLElement>;
   private map: L.Map | null = null;
@@ -26,6 +28,13 @@ export class ElevatorMap {
       const elevators = this.elevatorService.filteredElevators();
       if (elevators.length > 0) {
         this.updateMarkers(elevators);
+      }
+    });
+
+    effect(() => {
+      const fs = this.fullscreen();
+      if (this.map) {
+        setTimeout(() => this.map?.invalidateSize(), 50);
       }
     });
   }
@@ -49,12 +58,17 @@ export class ElevatorMap {
     this.map = L.map(this.mapContainer.nativeElement, {
       center: [42.8168, -1.6488],
       zoom: 14,
-      zoomControl: true
+      zoomControl: !this.isTouchDevice,
+      tapTolerance: 15
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(this.map);
+
+    if (this.isTouchDevice) {
+      L.control.zoom({ position: 'bottomright' }).addTo(this.map);
+    }
 
     this.map.on('click', () => {
       if (this.pinnedMarker) {
@@ -75,7 +89,13 @@ export class ElevatorMap {
       const popupContent = this.createPopupContent(elevator);
       const marker = L.marker([elevator.latitude, elevator.longitude], { icon })
         .addTo(this.map)
-        .bindPopup(popupContent, { closeButton: true });
+        .bindPopup(popupContent, {
+          closeButton: true,
+          maxWidth: 260,
+          autoPan: true,
+          autoPanPaddingTopLeft: L.point(10, 10),
+          autoPanPaddingBottomRight: L.point(10, 10)
+        });
 
       if (!this.isTouchDevice) {
         marker.on('mouseover', () => {
@@ -193,12 +213,12 @@ export class ElevatorMap {
 
     const btnText = elevator.canReport ? 'Reportar estado' : 'Modificar reporte';
     const btnStyle = elevator.canReport
-      ? 'width:100%;padding:10px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.9rem;cursor:pointer;'
-      : 'width:100%;padding:10px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.9rem;cursor:pointer;';
+      ? 'width:100%;padding:12px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.95rem;cursor:pointer;min-height:44px;'
+      : 'width:100%;padding:12px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.95rem;cursor:pointer;min-height:44px;';
 
     const container = document.createElement('div');
     container.style.fontFamily = 'Inter,-apple-system,sans-serif';
-    container.style.minWidth = '180px';
+    container.style.minWidth = '160px';
     container.innerHTML = `
       <strong style="font-size:1rem;color:#1a1a2e">${escapedName}</strong>
       <p style="margin:2px 0 4px;color:#6c757d;font-size:0.85rem">${escapedLocation}</p>
@@ -211,6 +231,7 @@ export class ElevatorMap {
       L.DomEvent.on(button, 'click', (e: Event) => {
         L.DomEvent.stopPropagation(e);
         L.DomEvent.preventDefault(e);
+        this.map?.closePopup();
         this.reportClicked.emit(elevator.id);
       });
     }

@@ -1,7 +1,7 @@
 <header class="app-header">
   <div class="header-left">
     <h1>Ascensores Iruña</h1>
-    <p>Estado en tiempo real de los ascensores públicos de Pamplona</p>
+    <p class="header-subtitle">Estado en tiempo real de los ascensores públicos de Pamplona</p>
     <span class="suggestion-text">Sugerencias: ascensoresiruna@gmail.com</span>
   </div>
   <div class="header-actions">
@@ -26,10 +26,14 @@
 </header>
 
 <main class="app-main">
-  <div class="map-panel">
-    <app-elevator-map (reportClicked)="openReportDialog($event)" />
+  <div class="map-section">
+    <app-elevator-map
+      [fullscreen]="mapFullscreen()"
+      (reportClicked)="openReportDialog($event)"
+      (fullscreenToggled)="toggleMapFullscreen()"
+    />
   </div>
-  <div class="list-panel">
+  <div class="list-section">
     <app-elevator-list (reportClicked)="openReportDialog($event)" (editClicked)="openEditDialog($event)" />
   </div>
 </main>

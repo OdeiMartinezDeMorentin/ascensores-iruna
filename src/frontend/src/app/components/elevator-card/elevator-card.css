@@ -67,6 +67,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
   margin-bottom: 0.75rem;
   font-size: 0.85rem;
 }
@@ -86,7 +87,7 @@
 
 .report-btn {
   width: 100%;
-  padding: 0.65rem;
+  padding: 0.7rem;
   border: 1px solid #dee2e6;
   border-radius: 8px;
   background: #f8f9fa;
@@ -94,6 +95,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
+  min-height: 44px;
 }
 
 .report-btn:hover {
@@ -103,7 +105,7 @@
 
 .edit-btn {
   width: 100%;
-  padding: 0.65rem;
+  padding: 0.7rem;
   border: 1px solid #ffc107;
   border-radius: 8px;
   background: #fff8e1;
@@ -111,6 +113,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
+  min-height: 44px;
 }
 
 .edit-btn:hover {
