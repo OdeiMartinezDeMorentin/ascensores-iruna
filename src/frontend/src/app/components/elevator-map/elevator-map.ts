@@ -41,6 +41,7 @@ export class ElevatorMap {
 
   ngAfterViewInit(): void {
     this.initMap();
+    setTimeout(() => this.map?.invalidateSize(), 100);
     const elevators = this.elevatorService.filteredElevators();
     if (elevators.length > 0) {
       this.updateMarkers(elevators);

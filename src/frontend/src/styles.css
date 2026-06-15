@@ -6,6 +6,13 @@
   padding: 0;
 }
 
+.leaflet-container *,
+.leaflet-container *::before,
+.leaflet-container *::after {
+  margin: revert;
+  padding: revert;
+}
+
 html, body {
   height: 100%;
 }
