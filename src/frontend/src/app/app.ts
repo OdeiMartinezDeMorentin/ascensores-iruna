@@ -22,7 +22,12 @@ export class App {
   readonly errorMessage = signal<string | null>(null);
   readonly showInfoDialog = signal(false);
   readonly mapFullscreen = signal(false);
+  readonly mobileTab = signal<'map' | 'list'>('list');
   readonly searchTerm = this.elevatorService.searchTerm;
+
+  setMobileTab(tab: 'map' | 'list'): void {
+    this.mobileTab.set(tab);
+  }
 
   toggleMapFullscreen(): void {
     this.mapFullscreen.update(v => !v);

@@ -4,10 +4,11 @@
     <p class="header-subtitle">Estado en tiempo real de los ascensores públicos de Pamplona</p>
     <span class="suggestion-text">Sugerencias: ascensoresiruna@gmail.com</span>
   </div>
+  <nav class="mobile-tabs">
+    <button [class.active]="mobileTab() === 'map'" (click)="setMobileTab('map')">Mapa</button>
+    <button [class.active]="mobileTab() === 'list'" (click)="setMobileTab('list')">Lista de ascensores</button>
+  </nav>
   <div class="header-actions">
-    <button class="info-btn" (click)="showInfoDialog.set(true)" aria-label="Información">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-    </button>
     <div class="search-bar">
       <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input
@@ -22,18 +23,21 @@
         </button>
       }
     </div>
+    <button class="info-btn" (click)="showInfoDialog.set(true)" aria-label="Información">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </button>
   </div>
 </header>
 
 <main class="app-main">
-  <div class="map-section">
+  <div class="map-section" [class.mobile-hidden]="mobileTab() !== 'map'">
     <app-elevator-map
       [fullscreen]="mapFullscreen()"
       (reportClicked)="openReportDialog($event)"
       (fullscreenToggled)="toggleMapFullscreen()"
     />
   </div>
-  <div class="list-section">
+  <div class="list-section" [class.mobile-hidden]="mobileTab() !== 'list'">
     <app-elevator-list (reportClicked)="openReportDialog($event)" (editClicked)="openEditDialog($event)" />
   </div>
 </main>
