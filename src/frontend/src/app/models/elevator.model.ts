@@ -5,6 +5,7 @@ export interface Elevator {
   latitude: number;
   longitude: number;
   currentStatus: string;
+  hasConflict: boolean;
   lastReportedAt: string | null;
   totalReports: number;
   recentReports: number;

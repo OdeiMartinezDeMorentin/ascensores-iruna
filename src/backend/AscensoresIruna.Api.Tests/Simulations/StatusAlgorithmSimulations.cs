@@ -22,8 +22,6 @@ public class StatusAlgorithmSimulations
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
-
         for (int i = 0; i < 5; i++)
         {
             var ip = $"troll_{i}";
@@ -52,8 +50,6 @@ public class StatusAlgorithmSimulations
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
-
         var trustService = new TrustScoreService(context);
 
         for (int i = 0; i < 10; i++)
@@ -81,8 +77,6 @@ public class StatusAlgorithmSimulations
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
 
         for (int i = 0; i < 3; i++)
             TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-50), $"early_op_{i}");
@@ -122,8 +116,6 @@ public class StatusAlgorithmSimulations
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
-
         TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), "user_a");
         TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-15), "user_b");
 
@@ -134,14 +126,12 @@ public class StatusAlgorithmSimulations
     }
 
     [Fact]
-    public async Task ManyUsers_ContentiousReports_Parcial()
+    public async Task ManyUsers_ContentiousReports_HasConflict()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
 
         for (int i = 0; i < 5; i++)
             TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), $"op_{i}");
@@ -152,51 +142,49 @@ public class StatusAlgorithmSimulations
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
 
-        Assert.Equal(ElevatorStatus.Parcial, result.Status);
+        Assert.True(result.HasConflict);
     }
 
     [Fact]
-    public async Task ThresholdEdge_Exactly60Percent()
+    public async Task ThresholdEdge_Exactly75Percent()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-90), "ipWinner");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-10), "ipWinner");
         TestDbHelper.AddReporter(context, "ipWinner", 1.0);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-90), "ipLoser");
-        TestDbHelper.AddReporter(context, "ipLoser", 0.6);
-
-        var service = new ElevatorStatusService(context, fakeTime);
-        var result = await service.GetCurrentStatusAsync(1);
-
-        Assert.Equal(ElevatorStatus.Parcial, result.Status);
-    }
-
-    [Fact]
-    public async Task ThresholdEdge_JustBelow60Percent()
-    {
-        using var context = TestDbHelper.CreateInMemoryContext();
-        TestDbHelper.SeedElevator(context);
-        var fakeTime = new FakeTimeProvider(BaseUtcNow);
-        var now = ToSpainTime(BaseUtcNow);
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-90), "ipWinner");
-        TestDbHelper.AddReporter(context, "ipWinner", 1.0);
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-90), "ipLoser");
-        TestDbHelper.AddReporter(context, "ipLoser", 0.59);
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), "ipLoser");
+        TestDbHelper.AddReporter(context, "ipLoser", 0.75);
 
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.NoOperativo, result.Status);
+        Assert.True(result.HasConflict);
+    }
+
+    [Fact]
+    public async Task ThresholdEdge_JustBelow75Percent()
+    {
+        using var context = TestDbHelper.CreateInMemoryContext();
+        TestDbHelper.SeedElevator(context);
+        var fakeTime = new FakeTimeProvider(BaseUtcNow);
+        var now = ToSpainTime(BaseUtcNow);
+
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-10), "ipWinner");
+        TestDbHelper.AddReporter(context, "ipWinner", 1.0);
+
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), "ipLoser");
+        TestDbHelper.AddReporter(context, "ipLoser", 0.74);
+
+        var service = new ElevatorStatusService(context, fakeTime);
+        var result = await service.GetCurrentStatusAsync(1);
+
+        Assert.Equal(ElevatorStatus.NoOperativo, result.Status);
+        Assert.False(result.HasConflict);
     }
 
     [Fact]
@@ -233,8 +221,6 @@ public class StatusAlgorithmSimulations
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var now = ToSpainTime(BaseUtcNow);
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "seed");
 
         for (int i = 0; i < 3; i++)
             TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-100), $"old_nop_{i}");

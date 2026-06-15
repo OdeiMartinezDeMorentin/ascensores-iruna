@@ -9,6 +9,8 @@ public class ElevatorStatusService
     private readonly AppDbContext _context;
     private readonly TimeProvider _timeProvider;
 
+    private const double ConflictThreshold = 0.75;
+
     public ElevatorStatusService(AppDbContext context, TimeProvider? timeProvider = null)
     {
         _context = context;
@@ -19,10 +21,9 @@ public class ElevatorStatusService
     {
         var spainTz = TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
         var now = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, spainTz);
-        var twoHoursAgo = now.AddHours(-2);
 
         var reports = await _context.StatusReports
-            .Where(r => r.ElevatorId == elevatorId && r.ReportedAt >= twoHoursAgo)
+            .Where(r => r.ElevatorId == elevatorId)
             .OrderByDescending(r => r.ReportedAt)
             .ToListAsync();
 
@@ -30,8 +31,9 @@ public class ElevatorStatusService
             return new ElevatorStatusResult
             {
                 Status = ElevatorStatus.Desconocido,
+                HasConflict = false,
                 LastReportedAt = null,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+                TotalReports = 0,
                 RecentReports = 0
             };
 
@@ -40,20 +42,18 @@ public class ElevatorStatusService
             .Where(ri => ipHashes.Contains(ri.IpAddressHash))
             .ToDictionaryAsync(ri => ri.IpAddressHash, ri => ri.TrustScore);
 
+        var mostRecent = reports[0];
         var oneHourAgo = now.AddHours(-1);
         var recentReports = reports.Count(r => r.ReportedAt >= oneHourAgo);
 
-        bool onlyHasOneReportEver = !await _context.StatusReports
-            .AnyAsync(r => r.ElevatorId == elevatorId && r.ReportedAt < twoHoursAgo);
-
         var operativoWeight = 0.0;
         var noOperativoWeight = 0.0;
-        var parcialWeight = 0.0;
 
         foreach (var report in reports)
         {
             var trust = reporterTrusts.GetValueOrDefault(report.IpAddressHash, 1.0);
-            var timeMultiplier = GetTimeMultiplier(now - report.ReportedAt);
+            var relativeAge = mostRecent.ReportedAt - report.ReportedAt;
+            var timeMultiplier = GetTimeMultiplier(relativeAge);
             var weight = timeMultiplier * trust;
 
             switch (report.Status)
@@ -64,72 +64,49 @@ public class ElevatorStatusService
                 case ElevatorStatus.NoOperativo:
                     noOperativoWeight += weight;
                     break;
-                case ElevatorStatus.Parcial:
-                    parcialWeight += weight;
-                    break;
             }
         }
 
-        if (onlyHasOneReportEver && reports.Count == 1)
-        {
-            var firstReport = reports.Last();
-            return new ElevatorStatusResult
-            {
-                Status = firstReport.Status,
-                LastReportedAt = firstReport.ReportedAt,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
-                RecentReports = recentReports
-            };
-        }
-
-        var totalWeight = operativoWeight + noOperativoWeight + parcialWeight;
+        var totalWeight = operativoWeight + noOperativoWeight;
         if (totalWeight == 0)
             return new ElevatorStatusResult
             {
                 Status = ElevatorStatus.Desconocido,
-                LastReportedAt = reports.First().ReportedAt,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+                HasConflict = false,
+                LastReportedAt = mostRecent.ReportedAt,
+                TotalReports = reports.Count,
                 RecentReports = recentReports
             };
 
         var bestWeight = Math.Max(operativoWeight, noOperativoWeight);
-        if (bestWeight == 0)
-        {
-            return new ElevatorStatusResult
-        {
-            Status = parcialWeight > 0 ? ElevatorStatus.Parcial : ElevatorStatus.Desconocido,
-                LastReportedAt = reports.First().ReportedAt,
-                TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
-                RecentReports = recentReports
-            };
-        }
-
-        var secondWeight = Math.Min(operativoWeight, noOperativoWeight);
         var bestStatus = operativoWeight >= noOperativoWeight
             ? ElevatorStatus.Operativo
             : ElevatorStatus.NoOperativo;
 
-        if (secondWeight > 0 && secondWeight >= bestWeight * 0.6)
-        {
-            bestStatus = ElevatorStatus.Parcial;
-        }
+        var secondWeight = Math.Min(operativoWeight, noOperativoWeight);
+
+        var hasConflict = secondWeight > 0 && secondWeight >= bestWeight * ConflictThreshold;
 
         return new ElevatorStatusResult
         {
             Status = bestStatus,
-            LastReportedAt = reports.First().ReportedAt,
-            TotalReports = await _context.StatusReports.CountAsync(r => r.ElevatorId == elevatorId),
+            HasConflict = hasConflict,
+            LastReportedAt = mostRecent.ReportedAt,
+            TotalReports = reports.Count,
             RecentReports = recentReports
         };
     }
 
-    private static double GetTimeMultiplier(TimeSpan age)
+    private static double GetTimeMultiplier(TimeSpan relativeAge)
     {
-        return age.TotalMinutes switch
+        return relativeAge.TotalHours switch
         {
-            <= 20 => 3.0,
-            <= 60 => 2.0,
-            _ => 1.0
+            <= 0.3333 => 3.0,
+            <= 1.0 => 2.0,
+            <= 6.0 => 1.0,
+            <= 24.0 => 0.5,
+            <= 72.0 => 0.25,
+            _ => 0.1
         };
     }
 }
@@ -137,6 +114,7 @@ public class ElevatorStatusService
 public class ElevatorStatusResult
 {
     public ElevatorStatus Status { get; set; }
+    public bool HasConflict { get; set; }
     public DateTime? LastReportedAt { get; set; }
     public int TotalReports { get; set; }
     public int RecentReports { get; set; }

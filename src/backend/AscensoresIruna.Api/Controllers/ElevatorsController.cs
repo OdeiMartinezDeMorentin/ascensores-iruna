@@ -244,6 +244,7 @@ public class ElevatorsController : ControllerBase
             Latitude = elevator.Latitude,
             Longitude = elevator.Longitude,
             CurrentStatus = statusResult.Status.ToString(),
+            HasConflict = statusResult.HasConflict,
             LastReportedAt = statusResult.LastReportedAt,
             TotalReports = statusResult.TotalReports,
             RecentReports = statusResult.RecentReports,

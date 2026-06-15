@@ -16,6 +16,7 @@ export class ElevatorCard {
   readonly editClicked = output<number>();
 
   readonly statusClass = computed(() => {
+    if (this.elevator().currentStatus === 'Desconocido') return 'desconocido';
     switch (this.elevator().currentStatus) {
       case 'NoOperativo': return 'no-operativo';
       default: return this.elevator().currentStatus.toLowerCase();
@@ -26,8 +27,6 @@ export class ElevatorCard {
     switch (this.elevator().currentStatus) {
       case 'Operativo':
         return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>';
-      case 'Parcial':
-        return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
       case 'NoOperativo':
         return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>';
       default:
@@ -38,13 +37,12 @@ export class ElevatorCard {
   readonly statusIcon = computed<SafeHtml>(() => this.sanitizer.bypassSecurityTrustHtml(this.statusIconHtml()));
 
   readonly statusLabel = computed(() => {
-    switch (this.elevator().currentStatus) {
-      case 'Operativo': return 'Operativo';
-      case 'Parcial': return 'Reportes contradictorios';
-      case 'NoOperativo': return 'No operativo';
-      default: return 'Sin reportes';
-    }
+    if (this.elevator().currentStatus === 'Desconocido') return 'Sin reportes';
+    const baseLabel = this.elevator().currentStatus === 'Operativo' ? 'Operativo' : 'No operativo';
+    return baseLabel;
   });
+
+  readonly hasConflict = computed(() => this.elevator().hasConflict && this.elevator().currentStatus !== 'Desconocido');
 
   readonly timeAgo = computed(() => {
     const reportedAt = this.elevator().lastReportedAt;

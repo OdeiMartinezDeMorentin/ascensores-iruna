@@ -8,6 +8,7 @@ public class ElevatorDto
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public string CurrentStatus { get; set; } = string.Empty;
+    public bool HasConflict { get; set; }
     public DateTime? LastReportedAt { get; set; }
     public int TotalReports { get; set; }
     public int RecentReports { get; set; }

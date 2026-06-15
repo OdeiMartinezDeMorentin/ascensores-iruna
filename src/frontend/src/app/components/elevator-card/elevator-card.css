@@ -15,10 +15,6 @@
   border-left-color: #28a745;
 }
 
-.elevator-card.parcial {
-  border-left-color: #ffc107;
-}
-
 .elevator-card.no-operativo {
   border-left-color: #dc3545;
 }

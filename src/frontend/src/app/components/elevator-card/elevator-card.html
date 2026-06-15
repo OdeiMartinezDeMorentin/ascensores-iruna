@@ -7,10 +7,15 @@
     </div>
   </div>
   <div class="card-details">
-    <span class="status-label">{{ statusLabel() }}</span>
-    @if (elevator().recentReports > 0) {
+    <span class="status-label">
+      {{ statusLabel() }}
+      @if (hasConflict()) {
+        — Reportes contradictorios
+      }
+    </span>
+    @if (!hasConflict() && elevator().recentReports > 0) {
       <span class="report-count">{{ elevator().recentReports }} reporte{{ elevator().recentReports === 1 ? '' : 's' }} en la última hora</span>
-    } @else if (timeAgo()) {
+    } @else if (!hasConflict() && timeAgo()) {
       <span class="time-ago">Último reporte {{ timeAgo() }}</span>
     }
   </div>

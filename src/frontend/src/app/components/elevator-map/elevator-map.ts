@@ -94,7 +94,7 @@ export class ElevatorMap {
     this.markers = [];
 
     for (const elevator of elevators) {
-      const icon = this.createIcon(elevator.currentStatus);
+      const icon = this.createIcon(elevator.currentStatus, elevator.hasConflict);
       const popupContent = this.createPopupContent(elevator);
       const marker = L.marker([elevator.latitude, elevator.longitude], { icon })
         .addTo(this.map)
@@ -175,14 +175,33 @@ export class ElevatorMap {
     }, 200);
   }
 
-  private createIcon(status: string): L.DivIcon {
-    const icons: Record<string, string> = {
-      'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#28a745" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#28a745" stroke="#fff" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="2.5" fill="none"/></svg>`,
-      'Parcial': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#ffc107" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#ffc107" stroke="#fff" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke="#fff" stroke-width="2.5"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="#fff" stroke-width="2.5"/></svg>`,
-      'NoOperativo': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#dc3545" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#dc3545" stroke="#fff" stroke-width="2"/><path d="m15 9-6 6" stroke="#fff" stroke-width="2.5"/><path d="m9 9 6 6" stroke="#fff" stroke-width="2.5"/></svg>`,
-      'Desconocido': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#6c757d" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#6c757d" stroke="#fff" stroke-width="2"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#fff" stroke-width="2" fill="none"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="#fff" stroke-width="2.5"/></svg>`
+  private createIcon(status: string, hasConflict: boolean): L.DivIcon {
+    const statusColors: Record<string, string> = {
+      'Operativo': '#28a745',
+      'NoOperativo': '#dc3545',
+      'Desconocido': '#6c757d'
     };
-    const svg = icons[status] ?? icons['Desconocido'];
+    const color = statusColors[status] ?? statusColors['Desconocido'];
+
+    let svg: string;
+    if (status === 'Operativo') {
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="${color}" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="${color}" stroke="#fff" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="2.5" fill="none"/></svg>`;
+    } else if (status === 'NoOperativo') {
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="${color}" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="${color}" stroke="#fff" stroke-width="2"/><path d="m15 9-6 6" stroke="#fff" stroke-width="2.5"/><path d="m9 9 6 6" stroke="#fff" stroke-width="2.5"/></svg>`;
+    } else {
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="${color}" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="${color}" stroke="#fff" stroke-width="2"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#fff" stroke-width="2" fill="none"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="#fff" stroke-width="2.5"/></svg>`;
+    }
+
+    if (hasConflict && status !== 'Desconocido') {
+      const filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.4)) drop-shadow(0 0 0 3px #ffc107)';
+      return L.divIcon({
+        className: 'elevator-marker',
+        html: `<div style="width:36px;height:36px;filter:${filter};border:2px solid #ffc107;border-radius:50%;overflow:hidden">${svg}</div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+        popupAnchor: [0, -22]
+      });
+    }
 
     return L.divIcon({
       className: 'elevator-marker',
@@ -205,18 +224,16 @@ export class ElevatorMap {
   private createPopupContent(elevator: Elevator): HTMLElement {
     const statusIcons: Record<string, string> = {
       'Operativo': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
-      'Parcial': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
       'NoOperativo': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`,
       'Desconocido': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
     };
-    const statusLabels: Record<string, string> = {
-      'Operativo': 'Operativo',
-      'Parcial': 'Reportes contradictorios',
-      'NoOperativo': 'No operativo',
-      'Desconocido': 'Sin reportes'
-    };
     const icon = statusIcons[elevator.currentStatus] ?? statusIcons['Desconocido'];
-    const label = statusLabels[elevator.currentStatus] ?? 'Sin reportes';
+    const baseLabel = elevator.currentStatus === 'Operativo' ? 'Operativo'
+      : elevator.currentStatus === 'NoOperativo' ? 'No operativo'
+      : 'Sin reportes';
+    const label = elevator.hasConflict && elevator.currentStatus !== 'Desconocido'
+      ? `${baseLabel} — Reportes contradictorios`
+      : baseLabel;
     const escapedName = this.escapeHtml(elevator.name);
     const escapedLocation = this.escapeHtml(elevator.location);
 

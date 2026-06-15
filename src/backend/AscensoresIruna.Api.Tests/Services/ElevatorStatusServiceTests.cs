@@ -15,7 +15,7 @@ public class ElevatorStatusServiceTests
     }
 
     [Fact]
-    public async Task NoReports_ReturnsDesconocido()
+    public async Task NoReports_ReturnsDesconocido_NoConflict()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
@@ -25,12 +25,13 @@ public class ElevatorStatusServiceTests
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.Desconocido, result.Status);
+        Assert.False(result.HasConflict);
         Assert.Null(result.LastReportedAt);
         Assert.Equal(0, result.RecentReports);
     }
 
     [Fact]
-    public async Task SingleFirstReport_Operativo_AcceptedDirectly()
+    public async Task SingleReport_Operativo_NoConflict()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
@@ -42,10 +43,11 @@ public class ElevatorStatusServiceTests
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.Operativo, result.Status);
+        Assert.False(result.HasConflict);
     }
 
     [Fact]
-    public async Task SingleFirstReport_NoOperativo_AcceptedDirectly()
+    public async Task SingleReport_NoOperativo_NoConflict()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
@@ -57,10 +59,11 @@ public class ElevatorStatusServiceTests
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.NoOperativo, result.Status);
+        Assert.False(result.HasConflict);
     }
 
     [Fact]
-    public async Task AllReports_SameStatus_ReturnsThatStatus()
+    public async Task AllReports_SameStatus_ReturnsThatStatus_NoConflict()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
@@ -70,12 +73,11 @@ public class ElevatorStatusServiceTests
         for (int i = 0; i < 5; i++)
             TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-i * 5), $"ip{i}");
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old_ip");
-
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.Operativo, result.Status);
+        Assert.False(result.HasConflict);
     }
 
     [Fact]
@@ -86,8 +88,6 @@ public class ElevatorStatusServiceTests
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
-
         for (int i = 0; i < 4; i++)
             TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), $"op{i}");
         TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-10), "nop0");
@@ -96,6 +96,7 @@ public class ElevatorStatusServiceTests
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.Operativo, result.Status);
+        Assert.False(result.HasConflict);
     }
 
     [Fact]
@@ -106,8 +107,6 @@ public class ElevatorStatusServiceTests
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
-
         for (int i = 0; i < 4; i++)
             TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-10), $"nop{i}");
         TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), "op0");
@@ -116,66 +115,63 @@ public class ElevatorStatusServiceTests
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.NoOperativo, result.Status);
+        Assert.False(result.HasConflict);
     }
 
     [Fact]
-    public async Task CloseContest_60Percent_ReturnsParcial()
+    public async Task CloseContest_75Percent_HasConflict()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), "ipA");
+        TestDbHelper.AddReporter(context, "ipA", 4.0);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-90), "ipA");
-        TestDbHelper.AddReporter(context, "ipA", 5.0);
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-90), "ipB");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-10), "ipB");
         TestDbHelper.AddReporter(context, "ipB", 3.0);
 
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
 
-        Assert.Equal(ElevatorStatus.Parcial, result.Status);
+        Assert.Equal(ElevatorStatus.Operativo, result.Status);
+        Assert.True(result.HasConflict);
     }
 
     [Fact]
-    public async Task CloseContest_Below60Percent_ReturnsWinner()
+    public async Task Below75Percent_NoConflict()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-90), "ipA");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), "ipA");
         TestDbHelper.AddReporter(context, "ipA", 10.0);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-90), "ipB");
-        TestDbHelper.AddReporter(context, "ipB", 5.9);
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-10), "ipB");
+        TestDbHelper.AddReporter(context, "ipB", 7.4);
 
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
 
         Assert.Equal(ElevatorStatus.Operativo, result.Status);
+        Assert.False(result.HasConflict);
     }
 
     [Fact]
-    public async Task TimeDecay_RecentReportsWeighMore()
+    public async Task TimeMultiplier_RecentReportsWeighMore()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
-
         TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-5), "ip_recent1");
         TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-10), "ip_recent2");
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-90), "ip_old1");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-8), "ip_old1");
 
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
@@ -184,14 +180,85 @@ public class ElevatorStatusServiceTests
     }
 
     [Fact]
-    public async Task TimeDecay_20MinBoundary()
+    public async Task OldReports_StillInfluenceResult()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-5), "ip1");
+
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddHours(-2), "ip2");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddHours(-3), "ip3");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddHours(-4), "ip4");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddHours(-7), "ip5");
+
+        var service = new ElevatorStatusService(context, fakeTime);
+        var result = await service.GetCurrentStatusAsync(1);
+
+        Assert.Equal(ElevatorStatus.NoOperativo, result.Status);
+    }
+
+    [Fact]
+    public async Task VeryOldReports_StillHaveMinimumWeight()
+    {
+        using var context = TestDbHelper.CreateInMemoryContext();
+        TestDbHelper.SeedElevator(context);
+        var fakeTime = new FakeTimeProvider(BaseUtcNow);
+        var now = ToSpainTime(BaseUtcNow);
+
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddDays(-5), "ip_old");
+
+        var service = new ElevatorStatusService(context, fakeTime);
+        var result = await service.GetCurrentStatusAsync(1);
+
+        Assert.Equal(ElevatorStatus.Operativo, result.Status);
+        Assert.False(result.HasConflict);
+    }
+
+    [Fact]
+    public async Task ConflictingReports_ShowsConflict()
+    {
+        using var context = TestDbHelper.CreateInMemoryContext();
+        TestDbHelper.SeedElevator(context);
+        var fakeTime = new FakeTimeProvider(BaseUtcNow);
+        var now = ToSpainTime(BaseUtcNow);
+
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-5), "ip1");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddMinutes(-5), "ip2");
+
+        var service = new ElevatorStatusService(context, fakeTime);
+        var result = await service.GetCurrentStatusAsync(1);
+
+        Assert.True(result.HasConflict);
+    }
+
+    [Fact]
+    public async Task RecentReports_CountsLastHour()
+    {
+        using var context = TestDbHelper.CreateInMemoryContext();
+        TestDbHelper.SeedElevator(context);
+        var fakeTime = new FakeTimeProvider(BaseUtcNow);
+        var now = ToSpainTime(BaseUtcNow);
+
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-30), "ip1");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-45), "ip2");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-90), "ip3");
+
+        var service = new ElevatorStatusService(context, fakeTime);
+        var result = await service.GetCurrentStatusAsync(1);
+
+        Assert.Equal(2, result.RecentReports);
+    }
+
+    [Fact]
+    public async Task TimeMultiplier_20MinBoundary()
+    {
+        using var context = TestDbHelper.CreateInMemoryContext();
+        TestDbHelper.SeedElevator(context);
+        var fakeTime = new FakeTimeProvider(BaseUtcNow);
+        var now = ToSpainTime(BaseUtcNow);
 
         TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-20), "ip_at20_a");
         TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-20), "ip_at20_b");
@@ -205,14 +272,12 @@ public class ElevatorStatusServiceTests
     }
 
     [Fact]
-    public async Task TimeDecay_60MinBoundary()
+    public async Task TimeMultiplier_1HourBoundary()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
-
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
 
         TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-60), "ip_at60");
 
@@ -232,8 +297,6 @@ public class ElevatorStatusServiceTests
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
-
         TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-5), "ip_trusted");
         TestDbHelper.AddReporter(context, "ip_trusted", 3.0);
 
@@ -251,40 +314,43 @@ public class ElevatorStatusServiceTests
     }
 
     [Fact]
-    public async Task Reports_OlderThan2Hours_Ignored()
+    public async Task RecentBroken_OutweighsOlderFixed()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "ip1");
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddHours(-2.5), "ip2");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddDays(-1), "ip_old1");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddDays(-1).AddMinutes(10), "ip_old2");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddDays(-1).AddMinutes(30), "ip_old3");
+
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddHours(-4), "ip_broken1");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now.AddHours(-2), "ip_broken2");
 
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
 
-        Assert.Equal(ElevatorStatus.Desconocido, result.Status);
-        Assert.Equal(0, result.RecentReports);
+        Assert.Equal(ElevatorStatus.NoOperativo, result.Status);
     }
 
     [Fact]
-    public async Task RecentReports_CountsOnlyLastHour()
+    public async Task SingleErroneousReport_DoesNotOverrideMultipleRecent()
     {
         using var context = TestDbHelper.CreateInMemoryContext();
         TestDbHelper.SeedElevator(context);
         var fakeTime = new FakeTimeProvider(BaseUtcNow);
         var now = ToSpainTime(BaseUtcNow);
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-3), "old");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-5), "ip1");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-10), "ip2");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddHours(-1), "ip3");
 
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-30), "ip1");
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-45), "ip2");
-        TestDbHelper.AddReport(context, 1, ElevatorStatus.Operativo, now.AddMinutes(-90), "ip3");
+        TestDbHelper.AddReport(context, 1, ElevatorStatus.NoOperativo, now, "ip_error");
 
         var service = new ElevatorStatusService(context, fakeTime);
         var result = await service.GetCurrentStatusAsync(1);
 
-        Assert.Equal(2, result.RecentReports);
+        Assert.Equal(ElevatorStatus.Operativo, result.Status);
     }
 }
