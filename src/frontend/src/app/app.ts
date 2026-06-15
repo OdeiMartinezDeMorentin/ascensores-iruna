@@ -1,19 +1,22 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { ElevatorList } from './components/elevator-list/elevator-list';
 import { ElevatorMap } from './components/elevator-map/elevator-map';
 import { ReportDialog } from './components/report-dialog/report-dialog';
 import { InfoDialog } from './components/info-dialog/info-dialog';
+import { Toast } from './components/toast/toast';
 import { ElevatorService } from './services/elevator.service';
 import { ElevatorStatus } from './models/elevator.model';
 
 @Component({
   selector: 'app-root',
-  imports: [ElevatorMap, ElevatorList, ReportDialog, InfoDialog],
+  imports: [ElevatorMap, ElevatorList, ReportDialog, InfoDialog, Toast],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
   private readonly elevatorService = inject(ElevatorService);
+
+  @ViewChild(Toast) toast!: Toast;
 
   readonly showDialog = signal(false);
   readonly selectedElevatorId = signal(0);
@@ -69,6 +72,10 @@ export class App {
       this.errorMessage.set(error);
     } else {
       this.showDialog.set(false);
+      const msg = this.isEditing()
+        ? 'Reporte actualizado correctamente.'
+        : '¡Gracias! Tu reporte ha sido registrado.';
+      this.toast?.show(msg);
     }
   }
 
@@ -83,6 +90,7 @@ export class App {
       this.errorMessage.set(error);
     } else {
       this.showDialog.set(false);
+      this.toast?.show('Reporte anulado correctamente.');
     }
   }
 
