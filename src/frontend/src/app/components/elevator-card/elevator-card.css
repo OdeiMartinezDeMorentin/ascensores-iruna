@@ -81,8 +81,14 @@
   color: #6c757d;
 }
 
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0;
+}
+
 .report-btn {
-  width: 100%;
+  flex: 1;
   padding: 0.7rem;
   border: 1px solid #dee2e6;
   border-radius: 8px;
@@ -100,7 +106,7 @@
 }
 
 .edit-btn {
-  width: 100%;
+  flex: 1;
   padding: 0.7rem;
   border: 1px solid #ffc107;
   border-radius: 8px;
@@ -115,4 +121,63 @@
 .edit-btn:hover {
   background: #ffe082;
   border-color: #ffb300;
+}
+
+.reports-btn {
+  padding: 0.7rem 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #fff;
+  color: #495057;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+.reports-btn:hover {
+  background: #f8f9fa;
+}
+
+.reports-loading,
+.reports-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.reports-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.report-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.report-operativo {
+  background: #e8f5e9;
+}
+
+.report-no-operativo {
+  background: #ffebee;
+}
+
+.report-status {
+  font-weight: 500;
+}
+
+.report-time {
+  color: #6c757d;
+  font-size: 0.8rem;
 }

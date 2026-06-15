@@ -1,6 +1,7 @@
-import { Component, input, output, computed, inject } from '@angular/core';
+import { Component, input, output, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Elevator } from '../../models/elevator.model';
+import { Elevator, RecentReport } from '../../models/elevator.model';
+import { ElevatorService } from '../../services/elevator.service';
 
 @Component({
   selector: 'app-elevator-card',
@@ -10,10 +11,15 @@ import { Elevator } from '../../models/elevator.model';
 })
 export class ElevatorCard {
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly elevatorService = inject(ElevatorService);
 
   readonly elevator = input.required<Elevator>();
   readonly reportClicked = output<number>();
   readonly editClicked = output<number>();
+
+  readonly showReports = signal(false);
+  readonly reports = signal<RecentReport[]>([]);
+  readonly loadingReports = signal(false);
 
   readonly statusClass = computed(() => {
     if (this.elevator().currentStatus === 'Desconocido') return 'desconocido';
@@ -60,4 +66,34 @@ export class ElevatorCard {
     if (diffHours < 24) return `hace ${diffHours}h`;
     return `hace ${diffDays}d`;
   });
+
+  async toggleReports(): Promise<void> {
+    if (this.showReports()) {
+      this.showReports.set(false);
+      return;
+    }
+
+    this.loadingReports.set(true);
+    this.showReports.set(true);
+    const data = await this.elevatorService.getRecentReports(this.elevator().id);
+    this.reports.set(data);
+    this.loadingReports.set(false);
+  }
+
+  formatTimeAgo(dateStr: string): string {
+    const now = new Date().getTime();
+    const reported = new Date(dateStr).getTime();
+    const diffMs = now - reported;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'ahora mismo';
+    if (diffMins < 60) return `hace ${diffMins} min`;
+    if (diffHours < 24) return `hace ${diffHours}h`;
+    if (diffDays < 7) return `hace ${diffDays}d`;
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks <= 4) return `hace ${diffWeeks} semana${diffWeeks === 1 ? '' : 's'}`;
+    return 'hace más de un mes';
+  }
 }

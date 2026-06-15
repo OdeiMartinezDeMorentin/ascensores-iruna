@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Elevator, CreateReportDto, UpdateReportDto, MyLatestReport } from '../models/elevator.model';
+import { Elevator, CreateReportDto, UpdateReportDto, MyLatestReport, RecentReport } from '../models/elevator.model';
 
 const SITE_GROUPS: string[][] = [
   ['Descalzos'],
@@ -148,6 +148,16 @@ export class ElevatorService {
           error: (err) => {
             resolve(err.message || 'Error al anular el reporte.');
           }
+        });
+    });
+  }
+
+  getRecentReports(elevatorId: number, top = 5): Promise<RecentReport[]> {
+    return new Promise((resolve) => {
+      this.http.get<RecentReport[]>(`${this.apiUrl}/${elevatorId}/reports`, { params: { top: top.toString() } })
+        .subscribe({
+          next: (data) => resolve(data),
+          error: () => resolve([])
         });
     });
   }

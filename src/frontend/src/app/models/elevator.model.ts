@@ -28,3 +28,8 @@ export interface MyLatestReport {
   reportedAt: string;
   canEdit: boolean;
 }
+
+export interface RecentReport {
+  status: string;
+  reportedAt: string;
+}

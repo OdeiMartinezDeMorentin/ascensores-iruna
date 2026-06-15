@@ -19,13 +19,34 @@
       <span class="time-ago">Último reporte {{ timeAgo() }}</span>
     }
   </div>
-  @if (elevator().canReport) {
-    <button class="report-btn" (click)="reportClicked.emit(elevator().id)">
-      Reportar estado
+  <div class="card-actions">
+    @if (elevator().canReport) {
+      <button class="report-btn" (click)="reportClicked.emit(elevator().id)">
+        Reportar estado
+      </button>
+    } @else {
+      <button class="edit-btn" (click)="editClicked.emit(elevator().id)">
+        Modificar reporte
+      </button>
+    }
+    <button class="reports-btn" (click)="toggleReports()">
+      {{ showReports() ? 'Ocultar reportes' : 'Últimos reportes' }}
     </button>
-  } @else {
-    <button class="edit-btn" (click)="editClicked.emit(elevator().id)">
-      Modificar reporte
-    </button>
+  </div>
+  @if (loadingReports()) {
+    <p class="reports-loading">Cargando...</p>
+  }
+  @if (showReports() && !loadingReports() && reports().length > 0) {
+    <ul class="reports-list">
+      @for (report of reports(); track report.reportedAt) {
+        <li class="report-item" [class]="report.status === 'Operativo' ? 'report-operativo' : 'report-no-operativo'">
+          <span class="report-status">{{ report.status === 'Operativo' ? 'Operativo' : 'No operativo' }}</span>
+          <span class="report-time">{{ formatTimeAgo(report.reportedAt) }}</span>
+        </li>
+      }
+    </ul>
+  }
+  @if (showReports() && !loadingReports() && reports().length === 0) {
+    <p class="reports-empty">No hay reportes.</p>
   }
 </div>

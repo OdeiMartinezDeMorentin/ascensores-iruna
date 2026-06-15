@@ -219,6 +219,30 @@ public class ElevatorsController : ControllerBase
         });
     }
 
+    [HttpGet("{id}/reports")]
+    public async Task<ActionResult<IEnumerable<RecentReportDto>>> GetRecentReports(int id, [FromQuery] int top = 5)
+    {
+        var elevator = await _context.Elevators.FindAsync(id);
+        if (elevator is null)
+            return NotFound();
+
+        if (top < 1) top = 1;
+        if (top > 20) top = 20;
+
+        var reports = await _context.StatusReports
+            .Where(r => r.ElevatorId == id)
+            .OrderByDescending(r => r.ReportedAt)
+            .Take(top)
+            .Select(r => new RecentReportDto
+            {
+                Status = r.Status.ToString(),
+                ReportedAt = r.ReportedAt
+            })
+            .ToListAsync();
+
+        return Ok(reports);
+    }
+
     private string GetClientIpHash()
     {
         var ip = HttpContext.Connection.RemoteIpAddress
