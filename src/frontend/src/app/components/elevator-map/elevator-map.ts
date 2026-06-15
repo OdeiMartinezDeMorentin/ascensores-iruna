@@ -13,6 +13,7 @@ export class ElevatorMap {
   private readonly elevatorService = inject(ElevatorService);
 
   readonly fullscreen = input(false);
+  readonly visible = input(true);
   readonly reportClicked = output<number>();
   readonly fullscreenToggled = output<void>();
 
@@ -34,6 +35,13 @@ export class ElevatorMap {
     effect(() => {
       const fs = this.fullscreen();
       if (this.map) {
+        setTimeout(() => this.map?.invalidateSize(), 50);
+      }
+    });
+
+    effect(() => {
+      const vis = this.visible();
+      if (vis && this.map) {
         setTimeout(() => this.map?.invalidateSize(), 50);
       }
     });
@@ -214,8 +222,8 @@ export class ElevatorMap {
 
     const btnText = elevator.canReport ? 'Reportar estado' : 'Modificar reporte';
     const btnStyle = elevator.canReport
-      ? 'width:100%;padding:12px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.95rem;cursor:pointer;min-height:44px;'
-      : 'width:100%;padding:12px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.95rem;cursor:pointer;min-height:44px;';
+      ? 'width:100%;padding:6px 0;border:1px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-size:0.95rem;cursor:pointer;min-height:36px;'
+      : 'width:100%;padding:6px 0;border:1px solid #ffc107;border-radius:8px;background:#fff8e1;color:#856404;font-size:0.95rem;cursor:pointer;min-height:36px;';
 
     const container = document.createElement('div');
     container.style.fontFamily = 'Inter,-apple-system,sans-serif';

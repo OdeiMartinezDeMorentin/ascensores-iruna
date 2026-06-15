@@ -9,8 +9,7 @@
 .leaflet-container *,
 .leaflet-container *::before,
 .leaflet-container *::after {
-  margin: revert;
-  padding: revert;
+  box-sizing: content-box;
 }
 
 html, body {

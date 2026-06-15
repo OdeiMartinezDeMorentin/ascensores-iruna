@@ -33,6 +33,7 @@
   <div class="map-section" [class.mobile-hidden]="mobileTab() !== 'map'">
     <app-elevator-map
       [fullscreen]="mapFullscreen()"
+      [visible]="mobileTab() === 'map'"
       (reportClicked)="openReportDialog($event)"
       (fullscreenToggled)="toggleMapFullscreen()"
     />
