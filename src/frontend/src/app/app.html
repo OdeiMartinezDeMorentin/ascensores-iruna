@@ -59,4 +59,8 @@
   <app-info-dialog (closed)="showInfoDialog.set(false)" />
 }
 
+@if (showWelcomeDialog()) {
+  <app-welcome-dialog (closed)="onWelcomeClosed()" />
+}
+
 <app-toast />

@@ -3,13 +3,14 @@ import { ElevatorList } from './components/elevator-list/elevator-list';
 import { ElevatorMap } from './components/elevator-map/elevator-map';
 import { ReportDialog } from './components/report-dialog/report-dialog';
 import { InfoDialog } from './components/info-dialog/info-dialog';
+import { WelcomeDialog } from './components/welcome-dialog/welcome-dialog';
 import { Toast } from './components/toast/toast';
 import { ElevatorService } from './services/elevator.service';
 import { ElevatorStatus } from './models/elevator.model';
 
 @Component({
   selector: 'app-root',
-  imports: [ElevatorMap, ElevatorList, ReportDialog, InfoDialog, Toast],
+  imports: [ElevatorMap, ElevatorList, ReportDialog, InfoDialog, WelcomeDialog, Toast],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -24,6 +25,7 @@ export class App {
   readonly isEditing = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly showInfoDialog = signal(false);
+  readonly showWelcomeDialog = signal(!localStorage.getItem('welcomeSeen'));
   readonly mapFullscreen = signal(false);
   readonly mobileTab = signal<'map' | 'list'>('list');
   readonly searchTerm = this.elevatorService.searchTerm;
@@ -101,5 +103,10 @@ export class App {
 
   clearSearch(): void {
     this.elevatorService.searchTerm.set('');
+  }
+
+  onWelcomeClosed(): void {
+    localStorage.setItem('welcomeSeen', 'true');
+    this.showWelcomeDialog.set(false);
   }
 }
