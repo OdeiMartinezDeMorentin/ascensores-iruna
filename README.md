@@ -126,11 +126,3 @@ Las contribuciones son bienvenidas. Si quieres mejorar la aplicación:
 2. Crea una rama para tu cambio
 3. Realiza la modificación
 4. Abre un pull request con una descripción clara
-
-## Contacto
-
-Si quieres ponerte en contacto por sugerencias, dudas o incidencias, puedes hacerlo a través del correo indicado en la propia aplicación.
-
-## Nota visual
-
-La imagen del proyecto sirve como vista previa de la interfaz y puede sustituirse por una captura real de la web cuando se quiera reflejar el proyecto con una imagen más fiel al diseño final.
