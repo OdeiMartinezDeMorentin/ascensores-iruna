@@ -1,128 +1,72 @@
 # Ascensores Iruña
 
-Una aplicación web para consultar el estado de los ascensores públicos de Pamplona y facilitar el acceso a la información en tiempo real.
+Una aplicación web para consultar el estado de los ascensores públicos de Pamplona y compartir información útil sobre su funcionamiento.
 
-El proyecto combina una interfaz sencilla, clara y útil con una API robusta para gestionar reportes de estado y dar visibilidad a la comunidad.
+![Vista previa de Ascensores Iruña](./docs/preview.svg)
 
-![Ascensores Iruña](./docs/preview.svg)
+## ¿Qué puedes hacer?
 
-## ¿Qué es?
-
-Ascensores Iruña es una plataforma pensada para que las personas puedan:
-
-- consultar rápidamente si un ascensor está operativo
-- ver incidencias o avisos sobre su estado
-- localizar ascensores en el mapa
-- enviar o actualizar reportes de uso
-- encontrar información útil de una forma accesible y ordenada
-
-La aplicación está diseñada para ser cercana y funcional, sin perder un enfoque profesional y claro.
-
-## Funcionalidades
-
-- Mapa interactivo con la ubicación de los ascensores
-- Lista de ascensores con estado visible
-- Búsqueda por nombre o referencia
-- Información detallada por cada ascensor
-- Envío y edición de reportes de estado
-- Diseño responsive para móvil y escritorio
-- Backend con gestión de datos y validación
+- Consultar en el mapa dónde están los ascensores públicos.
+- Revisar su estado y los últimos reportes.
+- Buscar un ascensor por nombre.
+- Enviar o actualizar un reporte.
+- Usar la web desde el móvil o el ordenador.
 
 ## Tecnologías
 
-- Frontend: Angular 22
-- Backend: ASP.NET Core
-- Base de datos: SQLite
-- Contenedorización: Docker + Docker Compose
-
-## Estructura del proyecto
-
-```text
-ascensores-iruna/
-├── Dockerfile
-├── docker-compose.yaml
-├── docs/
-│   └── preview.svg
-├── src/
-│   ├── frontend/              # Aplicación Angular
-│   └── backend/
-│       ├── AscensoresIruna.Api/      # API ASP.NET Core
-│       ├── AscensoresIruna.Api.Tests/
-│       └── AscensoresIruna.Api.slnx
-├── .gitignore
-├── .dockerignore
-└── README.md
-```
-
-## Requisitos
-
-Antes de ejecutar el proyecto, asegúrate de tener instalado:
-
-- Node.js 22+
-- npm
-- .NET 10 SDK
-- Docker y Docker Compose
+- **Frontend:** Angular 22 y TypeScript
+- **Backend:** ASP.NET Core 10
+- **Base de datos:** SQLite
+- **Despliegue:** Docker y Docker Compose
 
 ## Ejecutar con Docker
 
-Desde la raíz del proyecto:
+Abre Docker Desktop y espera a que el motor esté en marcha. Desde la carpeta raíz del repositorio, ejecuta:
 
-```bash
+```powershell
 docker compose up --build
 ```
 
-La aplicación quedará disponible en:
+Después, abre [http://localhost:8080](http://localhost:8080).
 
-```text
-http://localhost:8080
+Para detener la aplicación, pulsa `Ctrl+C` y ejecuta:
+
+```powershell
+docker compose down
 ```
 
 ## Ejecutar en local
 
-### Frontend
+Necesitas Node.js y npm para el frontend, y .NET 10 SDK para el backend. Abre dos terminales desde la raíz del repositorio.
 
-```bash
+**Terminal 1 — backend:**
+
+```powershell
+cd src/backend/AscensoresIruna.Api
+dotnet run
+```
+
+**Terminal 2 — frontend:**
+
+```powershell
 cd src/frontend
 npm install
 npm start
 ```
 
-El frontend normalmente estará disponible en:
+El frontend estará disponible normalmente en [http://localhost:4200](http://localhost:4200).
+
+## Estructura
 
 ```text
-http://localhost:4200
+├── docs/                 # Recursos del README
+├── src/
+│   ├── backend/          # API ASP.NET Core y pruebas
+│   └── frontend/         # Aplicación Angular
+├── Dockerfile
+└── docker-compose.yaml
 ```
 
-### Backend
+## Contacto
 
-```bash
-cd src/backend/AscensoresIruna.Api
-dotnet restore
-dotnet run
-```
-
-## Variables de entorno
-
-El proyecto usa una configuración base para desarrollo y producción, incluyendo valores como:
-
-- `ASPNETCORE_ENVIRONMENT`
-- `ASPNETCORE_URLS`
-- `HMAC_SECRET`
-- `ConnectionStrings__DefaultConnection`
-
-## Desarrollo
-
-La aplicación está pensada para seguir creciendo con una estructura simple y mantenible:
-
-- frontend para la experiencia de usuario
-- backend para la lógica y gestión de datos
-- SQLite para facilitar despliegues locales y pruebas rápidas
-
-## Contribución
-
-Las contribuciones son bienvenidas. Si quieres mejorar la aplicación:
-
-1. Haz un fork del repositorio
-2. Crea una rama para tu cambio
-3. Realiza la modificación
-4. Abre un pull request con una descripción clara
+Para sugerencias, la aplicación muestra el correo de contacto en su cabecera.
