@@ -2,7 +2,7 @@
 
 Una aplicación web para consultar el estado de los ascensores públicos de Pamplona y compartir información útil sobre su funcionamiento.
 
-![Vista previa de Ascensores Iruña](./docs/preview.svg)
+![Vista previa de Ascensores Iruña](./docs/Captura%20de%20pantalla%202026-11-06%20210952.png)
 
 ## ¿Qué puedes hacer?
 
